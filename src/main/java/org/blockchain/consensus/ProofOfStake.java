@@ -1,16 +1,56 @@
 package org.blockchain.consensus;
 
 import org.blockchain.Block;
+import org.blockchain.Blockchain;
+import org.blockchain.utils.Utils;
+import org.blockchain.validators.BlockValidator;
+
+import java.util.List;
+import java.util.Random;
+
 import static org.blockchain.utils.Utils.applySha256;
 
-public class ProofOfStake { //FALTA IMPLEMENTAR
-    public static String calculateHashPoS(Block block) {
-        String dataToHash = Integer.toString(block.getId()) + Long.toString(block.getblockTimestamp()) + block.getPreviousHash() + Integer.toString(block.getNonce()) + block.getMerkleRoot();
+public class ProofOfStake {
+    public static void mineBlock(Block block, Blockchain blockchain) {
+        // Select validators for forging the block
+        List<Validator> selectedValidators = blockchain.selectValidatorsForForging();
+
+        // Implement PoS mining algorithm to select a validator from the list
+        Validator chosenValidator = selectValidatorForForging(selectedValidators);
+
+        while (!BlockValidator.isValidPoS(block, chosenValidator, blockchain)) {
+            block.setHash(calculateHashPoS(block, chosenValidator)); // Recalculate the hash based on the chosen validator
+        }
+
+        System.out.println("The validator chosen has a stake of " + chosenValidator.getStake());
+
+        block.addValidator(chosenValidator);
+    }
+
+    // Method to select a validator from the list of selected validators for forging
+    private static Validator selectValidatorForForging(List<Validator> selectedValidators) {
+        // Check if the list of selected validators is not empty
+        if (selectedValidators.isEmpty()) {
+            throw new IllegalArgumentException("No validators selected for forging.");
+        }
+
+        // Generate a random index within the range of the list size
+        Random random = new Random();
+        int randomIndex = random.nextInt(selectedValidators.size());
+
+        // Return the validator at the randomly chosen index
+        return selectedValidators.get(randomIndex);
+    }
+
+    // Method to calculate the hash of the block based on the chosen validator (PoS)
+    private static String calculateHashPoS(Block block, Validator validator) {
+        // Construct the data to be hashed based on the chosen validator
+        String dataToHash = Integer.toString(block.getId()) + Long.toString(block.getblockTimestamp()) +
+                block.getPreviousHash() + Integer.toString(block.getNonce()) +
+                block.getMerkleRoot() + Utils.getStringFromKey(validator.getPublicKey());
+
+        // Calculate and return the hash
         return applySha256(dataToHash);
     }
 
-    public static void mineBlock(Block block) {
-        String hash = calculateHashPoS(block);
-        block.setHash(hash);
-    }
 }

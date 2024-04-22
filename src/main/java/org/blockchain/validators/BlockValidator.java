@@ -1,30 +1,29 @@
 package org.blockchain.validators;
 
 import org.blockchain.Block;
+import org.blockchain.Blockchain;
+import org.blockchain.consensus.Validator;
 import org.blockchain.transaction.Transaction;
+import org.blockchain.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.blockchain.utils.Utils.applySha256;
+
 
 public class BlockValidator {
-    /**
-     * Validates a block.
-     *
-     * @param block The block to be validated.
-     * @param difficulty The difficulty level for mining blocks if PoW.
-     * @param previousBlock The previous block in the blockchain.
-     * @return True if the block is valid, false otherwise.
-     */
-    public static boolean isValidBlock(Block block, int difficulty, Block previousBlock) {
+    public static boolean isValidBlock(Block block, int difficulty, Block previousBlock, int consensus) {
         // Check if the previous hash of the current block matches the hash of the previous block
         if (!block.getPreviousHash().equals(previousBlock.getHash())) {
             return false;
         }
 
-        // Validate the proof-of-work
-        if (!isValidPoW(block, difficulty)) {
-            return false;
+        if(consensus!=2){
+            // Validate the proof-of-work
+            if (!isValidPoW(block, difficulty)) {
+                return false;
+            }
         }
 
         // Verify the Merkle root
@@ -57,5 +56,28 @@ public class BlockValidator {
         long previousTimestamp = previousBlock.getblockTimestamp();
         return currentTimestamp > previousTimestamp && currentTimestamp <= System.currentTimeMillis();
     }
-    
+
+    public static boolean isValidPoS(Block block, Validator validator, Blockchain blockchain) {
+        // Verify that the chosen validator is not null
+        if (validator == null) {
+            return false;
+        }
+
+        // Verify the signature or proof of ownership of the chosen validator
+        if (!validateValidatorSignature(block, validator)) {
+            return false;
+        }
+
+        return true;
+    }
+    // Method to validate the signature or proof of ownership of the chosen validator
+    private static boolean validateValidatorSignature(Block block, Validator chosenValidator) {
+        // Construct the data to be hashed based on the chosen validator
+        String dataToHash = Integer.toString(block.getId()) + Long.toString(block.getblockTimestamp()) +
+                block.getPreviousHash() + Integer.toString(block.getNonce()) +
+                block.getMerkleRoot() + Utils.getStringFromKey(chosenValidator.getPublicKey());
+
+        // Calculate and return the hash
+        return applySha256(dataToHash).equals(block.getHash());
+    }
 }

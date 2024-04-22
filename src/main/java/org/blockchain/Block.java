@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.blockchain.consensus.ProofOfStake;
 import org.blockchain.consensus.ProofOfWork;
+import org.blockchain.consensus.Validator;
 import org.blockchain.transaction.Transaction;
 import static org.blockchain.utils.Utils.applySha256;
 import static org.blockchain.validators.TransactionValidator.isValidTransaction;
@@ -20,6 +21,7 @@ public class Block {
     private String previousHash;
     private String merkleRoot;
     private static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+    private List<Validator> validators = new ArrayList<>(); // List of validators and their stakes
 
     public Block(int id, String previousHash, ArrayList<Transaction> transactions) {
         this.id = id;
@@ -71,6 +73,14 @@ public class Block {
         this.merkleRoot = computeMerkleRoot;
     }
 
+    public List<Validator> getValidators() {
+        return validators;
+    }
+
+    public void addValidator(Validator validator) {
+        this.validators.add(validator);
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -118,14 +128,14 @@ public class Block {
         return merkleRoot;
     }
 
-    public void mineBlock(int consensus, int difficulty) {
+    public void mineBlock(Blockchain blockchain, int consensus, int difficulty) {
         switch (consensus) {
             case 1: // Proof-of-Work (PoW)
                 ProofOfWork.mineBlock(this, difficulty);
                 break;
 
-            case 2: // Proof-of-Stake (PoS) NOT IMPLEMENTED YET SEE THIS PART
-                ProofOfStake.mineBlock(this);
+            case 2: // Proof-of-Stake (PoS)
+                ProofOfStake.mineBlock(this, blockchain);
 
             default: // Make default case Proof-of-Work
                 ProofOfWork.mineBlock(this, difficulty);
