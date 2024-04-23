@@ -1,16 +1,16 @@
 package org.Kademlia;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import org.bouncycastle.*;
+import org.bouncycastle.jcajce.provider.digest.SHA3;
+
 
 public class Node {
-    private final int nodeId;
+    private final byte[] nodeId;
     private final int nodePublicPort;
 
     private long nodeTimestamp;
@@ -20,22 +20,37 @@ public class Node {
     private PrivateKey privKey;
     private PublicKey pubKey;
 
-    public Node(int nodeId, int nodePublicPort, long nodeTimestamp, String nodeValue) {
-        this.nodeId = nodeId;
-        this.nodePublicPort = nodePublicPort;
-        this.nodeTimestamp = nodeTimestamp;
-        this.nodeValue = nodeValue;
-        generateKeys();
-        getTimestamp();
-    }
-
-    public Node(int nodeId, int nodePublicPort, String nodeValue) {
-        this.nodeId = nodeId;
+    public Node(int nodePublicPort, String nodeValue) {
         this.nodePublicPort = nodePublicPort;
         this.nodeValue = nodeValue;
         generateKeys();
         generateTimestamp();
-        getTimestamp();
+        printTimeStamp();
+        this.nodeId = generateId(this.pubKey);
+        printNodeID_Hash();
+    }
+
+    public void printNodeID_Hash(){
+        StringBuilder texto = new StringBuilder();
+        System.out.print("NodeID: ");
+        for (byte b : this.nodeId) {
+            texto.append(String.format("%02X", 0xFF & b));
+        }
+        System.out.println(texto.toString());
+    }
+
+    public byte[] generateId(PublicKey pk) {
+        assert pk != null : "Public key is null in GenerateID";
+
+        try {
+            MessageDigest algorithm = new SHA3.Digest256();
+            byte[] hash = algorithm.digest(pk.getEncoded());
+
+            return hash;
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void generateKeys() {
@@ -56,9 +71,9 @@ public class Node {
         this.nodeTimestamp = Unixtimestamp;
     }
 
-    public void getTimestamp() { // TimeStamp is Unix Time
+    public void printTimeStamp() { // TimeStamp is Unix Time
 
-        System.out.println("Current Unix Timestamp in node: " + nodeTimestamp);
+        System.out.print("Current Timestamp in node: " + nodeTimestamp + "(unix)");
 
         // Convertendo Unix timestamp para um objeto Instant
         Instant instant = Instant.ofEpochSecond(nodeTimestamp);
@@ -71,13 +86,11 @@ public class Node {
         String formattedDateTime = dateTime.format(formatter);
 
         // Imprimindo o timestamp formatado
-        System.out.println("Timestamp convertido: " + formattedDateTime);
+        System.out.println(" -> " + formattedDateTime + "(standard)");
 
     }
 
-    public int getNodeId() {
-        return nodeId;
-    }
+
 
     public int getNodePublicPort() {
         return nodePublicPort;
