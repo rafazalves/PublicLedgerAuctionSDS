@@ -1,5 +1,6 @@
 package org.Kademlia;
 
+import java.math.BigInteger;
 import java.security.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -7,6 +8,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import org.bouncycastle.*;
 import org.bouncycastle.jcajce.provider.digest.SHA3;
+import org.Kademlia.utils.Utils;
 
 
 public class Node {
@@ -28,6 +30,10 @@ public class Node {
         printTimeStamp();
         this.nodeId = generateId(this.pubKey);
         printNodeID_Hash();
+
+//        BigInteger resBigInteger = Utils.byteToBigInteger(nodeId);
+//        System.out.println(resBigInteger);
+
     }
 
     public void printNodeID_Hash(){
@@ -98,6 +104,10 @@ public class Node {
 
     public long getNodeTimestamp() {
         return nodeTimestamp;
+    }
+
+    public byte[] getNodeId() {
+        return nodeId;
     }
 
     public String getNodeValue() {

@@ -1,7 +1,6 @@
 package org.example;
 
 import org.Kademlia.Node;
-
 import java.time.Instant;
 
 public class Main {

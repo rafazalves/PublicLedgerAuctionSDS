@@ -9,6 +9,7 @@
 ### Gradle ###
 .gradle
 /build/
+build/
 
 # 
 bin/
