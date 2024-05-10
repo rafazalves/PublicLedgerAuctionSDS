@@ -7,9 +7,12 @@
 *.ear
 
 ### Gradle ###
-.gradle
+.gradle/*
 /build/
 build/
 
 # 
 bin/
+.idea/*
+.idea/
+.idea
