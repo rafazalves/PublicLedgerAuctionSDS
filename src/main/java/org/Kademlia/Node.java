@@ -6,30 +6,31 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+
 import org.bouncycastle.*;
 import org.bouncycastle.jcajce.provider.digest.SHA3;
 import org.Kademlia.utils.Utils;
 
 
 public class Node {
-    private final byte[] nodeId;
+    private final byte[] nodeId; //KEY
     private final int nodePublicPort;
+    private final int nodeIP;
 
     private long nodeTimestamp;
-
-    private final String nodeValue;
 
     private PrivateKey privKey;
     private PublicKey pubKey;
 
-    public Node(int nodePublicPort, String nodeValue) {
+    public Node(int nodePublicPort, int nodeIP) {
         this.nodePublicPort = nodePublicPort;
-        this.nodeValue = nodeValue;
+        this.nodeIP = nodeIP;
         generateKeys();
         generateTimestamp();
         printTimeStamp();
         this.nodeId = generateId(this.pubKey);
-        printNodeID_Hash();
+        //printNodeID_Hash();
 
 //        BigInteger resBigInteger = Utils.byteToBigInteger(nodeId);
 //        System.out.println(resBigInteger);
@@ -43,6 +44,14 @@ public class Node {
             texto.append(String.format("%02X", 0xFF & b));
         }
         System.out.println(texto.toString());
+    }
+
+    public String printNodeId_Hash(){
+        StringBuilder texto = new StringBuilder();
+        for (byte b : this.nodeId) {
+            texto.append(String.format("%02X", 0xFF & b));
+        }
+        return  texto.toString();
     }
 
     public byte[] generateId(PublicKey pk) {
@@ -79,7 +88,7 @@ public class Node {
 
     public void printTimeStamp() { // TimeStamp is Unix Time
 
-        System.out.print("Current Timestamp in node: " + nodeTimestamp + "(unix)");
+        //System.out.print("Current Timestamp in node: " + nodeTimestamp + "(unix)");
 
         // Convertendo Unix timestamp para um objeto Instant
         Instant instant = Instant.ofEpochSecond(nodeTimestamp);
@@ -92,11 +101,14 @@ public class Node {
         String formattedDateTime = dateTime.format(formatter);
 
         // Imprimindo o timestamp formatado
-        System.out.println(" -> " + formattedDateTime + "(standard)");
+        //System.out.println(" -> " + formattedDateTime + "(standard)");
 
     }
 
-
+    public int nodeDistance(byte[] node1, byte[] node2) {
+        BigInteger xorResult = Utils.byteToBigInteger(node1).xor(Utils.byteToBigInteger(node2));
+        return xorResult.intValue();
+    }
 
     public int getNodePublicPort() {
         return nodePublicPort;
@@ -109,9 +121,8 @@ public class Node {
     public byte[] getNodeId() {
         return nodeId;
     }
-
-    public String getNodeValue() {
-        return nodeValue;
+    public String getNodeIdString() {
+        return printNodeId_Hash();
     }
 
     public PrivateKey getPrivKey() {
@@ -120,5 +131,21 @@ public class Node {
 
     public PublicKey getPubKey() {
         return pubKey;
+    }
+
+    public int getNodeIP() {
+        return nodeIP;
+    }
+
+
+    @Override
+    public String toString() {
+        String nodeid = printNodeId_Hash();
+        return "Node{" +
+                "NodeId=" + nodeid +
+                ", nodeIP=" + nodeIP +
+                ", nodePublicPort=" + nodePublicPort +
+                ", nodeTimestamp=" + nodeTimestamp + '\'' +
+                '}';
     }
 }
