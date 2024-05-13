@@ -10,6 +10,8 @@ import org.bouncycastle.*;
 import org.bouncycastle.jcajce.provider.digest.SHA3;
 import org.Kademlia.utils.Utils;
 
+import static org.Kademlia.proof.ProofOfWork.mineChallenge;
+
 
 public class Node {
     private final byte[] nodeId;
@@ -22,6 +24,8 @@ public class Node {
     private PrivateKey privKey;
     private PublicKey pubKey;
 
+    private final int nonce;
+
     public Node(int nodePublicPort, String nodeValue) {
         this.nodePublicPort = nodePublicPort;
         this.nodeValue = nodeValue;
@@ -30,6 +34,11 @@ public class Node {
         printTimeStamp();
         this.nodeId = generateId(this.pubKey);
         printNodeID_Hash();
+        try {
+            nonce = mineChallenge(nodeId);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
 
 //        BigInteger resBigInteger = Utils.byteToBigInteger(nodeId);
 //        System.out.println(resBigInteger);
@@ -120,5 +129,9 @@ public class Node {
 
     public PublicKey getPubKey() {
         return pubKey;
+    }
+
+    public int getNonce() {
+        return nonce;
     }
 }

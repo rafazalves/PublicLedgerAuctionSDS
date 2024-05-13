@@ -12,7 +12,9 @@ public class ProofOfWork {
     // larger numbers means harder
     private static final int PoW_Difficulty = 5;
 
-    public static byte[] solveChallenge(byte[] data) throws NoSuchAlgorithmException {
+
+    // para proteger do ataque sybils -> usar id do node
+    public static int mineChallenge(byte[] data) throws NoSuchAlgorithmException {
         MessageDigest algorithm = new SHA3.Digest256();
 
         byte[] hash;
@@ -27,7 +29,7 @@ public class ProofOfWork {
 
             // Verifica se o hash satisfaz os requisitos do desafio
             if (startsWithNZeroBytes(hash, PoW_Difficulty)) {
-                return hash;
+                return nonce;
             }
 
             // Incrementa o nonce para tentar novamente
