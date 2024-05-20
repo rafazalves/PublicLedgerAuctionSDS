@@ -1,2 +1,4 @@
-package org.gRPC;public class interceptor {
+package org.gRPC;
+
+public class interceptor {
 }

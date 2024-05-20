@@ -1,2 +1,4 @@
-package org.gRPC;public class clientManager {
+package org.gRPC;
+
+public class clientManager {
 }

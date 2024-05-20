@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'com.google.protobuf' version '0.9.4'
 }
 
 group 'org.example'
@@ -15,6 +16,27 @@ dependencies {
     // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.70'
     implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+
+    runtimeOnly 'io.grpc:grpc-netty-shaded:1.64.0'
+    implementation 'io.grpc:grpc-protobuf:1.64.0'
+    implementation 'io.grpc:grpc-stub:1.64.0'
+    compileOnly 'org.apache.tomcat:annotations-api:6.0.53' // necessary for Java 9+
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.25.1"
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.64.0'
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
 }
 
 test {
