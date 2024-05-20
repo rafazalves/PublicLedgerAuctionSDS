@@ -32,7 +32,6 @@ public class Node {
         generateKeys();
         generateTimestamp();
         this.nodeId = generateId(this.pubKey);
-        //printNodeID_Hash();
         try {
             nonce = mineChallenge(nodeId);
         } catch (NoSuchAlgorithmException e) {
