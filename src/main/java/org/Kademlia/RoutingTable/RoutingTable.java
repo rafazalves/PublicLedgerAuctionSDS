@@ -47,11 +47,11 @@ public class RoutingTable {
         TreeSet<Node> sorted ;
         PriorityQueue<Node> sortedNodes = new PriorityQueue<>(num_nodes, new Comparator<Node>() {
             @Override
-            public int compare(Node n1, Node n2) {
+            public int compare(Node n1, Node n2) { // compare nodes based on distance to n
                 BigInteger nID0 = Utils.byteToBigInteger(n1.getNodeId());
                 BigInteger nID1 = Utils.byteToBigInteger(n2.getNodeId());
-                BigInteger dist0 = Utils.byteToBigInteger(Node.getNodeId()).xor(nID0);
-                BigInteger dist1 = Utils.byteToBigInteger(Node.getNodeId()).xor(nID1);
+                BigInteger dist0 = Utils.byteToBigInteger(n.getNodeId()).xor(nID0);
+                BigInteger dist1 = Utils.byteToBigInteger(n.getNodeId()).xor(nID1);
                 int d0 = dist0.intValue();
                 int d1 = dist1.intValue();
                 return Integer.compare(d0, d1);
