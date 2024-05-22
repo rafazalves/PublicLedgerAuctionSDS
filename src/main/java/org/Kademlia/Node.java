@@ -60,6 +60,7 @@ public class Node {
         System.out.println(texto.toString());
     }
 
+
     public String printNodeId_Hash(){
         StringBuilder texto = new StringBuilder();
         for (byte b : this.nodeId) {
