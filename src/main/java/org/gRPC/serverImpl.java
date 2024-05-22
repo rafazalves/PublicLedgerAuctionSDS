@@ -15,6 +15,7 @@ import org.Kademlia.utils.Utils;
 import org.Kademlia.Node;
 
 
+
 public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
     private final Logger logger;
     private final Node node;
@@ -90,18 +91,15 @@ public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
     // or return the closest node to the targetID
     @Override
     public void findValue(target request, StreamObserver<FValues> responseObserver){
-        var nodeId_request = request.getNodeId;
-        var port_temp = request.getNodePublicPort;
-        var nodeIp = request.getNodeIP;
+        var key = new BigInteger(1, request.getKey().toByteArray());
+        var value = storageManager.getValue(key);
 
-        //toDo: make the findValue in node class
-        var valueResult = this.node.findValue(nodeId_request); // ir ao storage manager buscar o valor
 
         //encontrou o valor
-        if(valueResult != null){
+        if(value != null){
             FValue valueRes = FValue.newBuilder()
                     .setFoundValue(true)
-                    .setValue(ByteString.copyFrom(valueResult))
+                    .setValue(ByteString.copyFrom(value))
                     .build();
 
             responseObserver.onNext(valueRes);
