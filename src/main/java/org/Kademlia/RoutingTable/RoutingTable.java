@@ -1,11 +1,10 @@
 package org.Kademlia.RoutingTable;
+import jdk.jshell.execution.Util;
 import org.Kademlia.*;
 import org.Kademlia.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.TreeSet;
+import java.math.BigInteger;
+import java.util.*;
 
 public class RoutingTable {
     private final Node Node;
@@ -46,7 +45,34 @@ public class RoutingTable {
 
     public synchronized final List<Node> findClosest (Node n, int num_nodes){
         TreeSet<Node> sorted ;
-        return null;
+        PriorityQueue<Node> sortedNodes = new PriorityQueue<>(num_nodes, new Comparator<Node>() {
+            @Override
+            public int compare(Node n1, Node n2) {
+                BigInteger nID0 = Utils.byteToBigInteger(n1.getNodeId());
+                BigInteger nID1 = Utils.byteToBigInteger(n2.getNodeId());
+                BigInteger dist0 = Utils.byteToBigInteger(Node.getNodeId()).xor(nID0);
+                BigInteger dist1 = Utils.byteToBigInteger(Node.getNodeId()).xor(nID1);
+                int d0 = dist0.intValue();
+                int d1 = dist1.intValue();
+                return Integer.compare(d0, d1);
+            }
+        });
+        for (Bucket b : this.buckets) {
+            for (Contactos c : b.getContactos()) {
+                sortedNodes.add(c.getN());
+                if (sortedNodes.size() > num_nodes) {
+                    sortedNodes.poll(); // Remove the farthest node if we have more than num_nodes nodes
+                }
+            }
+        }
+
+        List<Node> closest = new ArrayList<>(num_nodes);
+        while (!sortedNodes.isEmpty()) {
+            closest.add(sortedNodes.poll());
+        }
+        // The closest list is in reverse order (farthest to closest), reverse it to return closest to farthest
+        Collections.reverse(closest);
+        return closest;
     }
 
     public synchronized final List<Node> ListNodes() {
