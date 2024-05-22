@@ -9,18 +9,22 @@ import org.Kademlia.Server;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class serverSetUp {
 
     private io.grpc.Server server;
     private serverImpl serverImplInst;
 
+    private static final Logger logger = Logger.getLogger(serverSetUp.class.getName());
+
    public void start(Node node) throws IOException {
        assert node != null;
 
        int port = node.getNodePublicPort();
 
-       serverImplInst = new serverImpl();
+       serverImplInst = new serverImpl(logger, node);
 
        server = ServerBuilder
                .forPort(port)
@@ -73,6 +77,8 @@ public class serverSetUp {
                throw new RuntimeException(e);
            }
        }
+
+       logger.setLevel(Level.FINEST);
 
        try {
            server.blockUntilShutdown();

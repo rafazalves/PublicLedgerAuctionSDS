@@ -27,7 +27,7 @@ message storeRequest {
 message storeResponse {
   bytes nodeId = 1;
   int64 timestamp = 2;
-  bool complete = 3;
+  bool result = 3;
 }
 
 message target{
@@ -36,14 +36,21 @@ message target{
   int64 nodeIP = 3;
 }
 
-message Nodes{
-  bytes key = 1;
-  bool complete = 2;
+message FNodes{
+  bytes nodeId = 1;
+  string nodeIp = 2;
+  int64 port = 3;
+  int64 timestamp = 4;
 }
 
-message Values{
-  string value = 1;
-  bool complete = 2;
+message FValues{
+  bytes value = 1;
+  bool foundValue = 2;
+
+  bytes nodeId = 3;
+  string nodeIp = 4;
+  int64 port = 5;
+  int64 timestamp = 6;
 }
 
 
