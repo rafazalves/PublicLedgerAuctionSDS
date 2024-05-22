@@ -22,7 +22,7 @@ public class RoutingTable {
         }
     }
 
-    private synchronized final void addContactos(Contactos c) {
+    private synchronized final void add(Contactos c) {
         int index = getBucketIndex(c.getN().getNodeId());
         this.buckets[index].addContactos(c);
     }
@@ -38,20 +38,19 @@ public class RoutingTable {
         return Index;
     }
 
-    public synchronized final void addNode(Node n) { // Adds a node to the routing table based on how far it is from the LocalNode.
+    public synchronized final void add(Node n) { // Adds a node to the routing table based on how far it is from the LocalNode.
         int index = getBucketIndex(n.getNodeId());
         this.buckets[index].addNode(n);
     }
 
-    public synchronized final List<Node> findClosest (Node n, int num_nodes){
-        TreeSet<Node> sorted ;
+    public synchronized final List<Node> findClosest(byte[] nid, int num_nodes){
         PriorityQueue<Node> sortedNodes = new PriorityQueue<>(num_nodes, new Comparator<Node>() {
             @Override
             public int compare(Node n1, Node n2) { // compare nodes based on distance to n
                 BigInteger nID0 = Utils.byteToBigInteger(n1.getNodeId());
                 BigInteger nID1 = Utils.byteToBigInteger(n2.getNodeId());
-                BigInteger dist0 = Utils.byteToBigInteger(n.getNodeId()).xor(nID0);
-                BigInteger dist1 = Utils.byteToBigInteger(n.getNodeId()).xor(nID1);
+                BigInteger dist0 = Utils.byteToBigInteger(nid).xor(nID0);
+                BigInteger dist1 = Utils.byteToBigInteger(nid).xor(nID1);
                 int d0 = dist0.intValue();
                 int d1 = dist1.intValue();
                 return Integer.compare(d0, d1);
