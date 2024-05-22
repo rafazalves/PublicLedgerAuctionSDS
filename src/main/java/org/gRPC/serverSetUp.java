@@ -50,14 +50,14 @@ public class serverSetUp {
        }
    }
 
-    private void blockUntilShutdown() throws InterruptedException {
+    public void blockUntilShutdown() throws InterruptedException {
         if (server != null) {
             server.awaitTermination();
         }
     }
 
 
-   public static void main(String[] args){
+   /*public static void main(String[] args){
        final serverSetUp server = new serverSetUp();
        if(args.length == 2) {
            Node node = new Node(Integer.parseInt(args[0]), Integer.parseInt(args[1])); // port, IP
@@ -90,7 +90,7 @@ public class serverSetUp {
        } catch (InterruptedException e) {
            throw new RuntimeException(e);
        }
-   }
+   }*/
 }
 
 
