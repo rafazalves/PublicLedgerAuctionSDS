@@ -38,9 +38,6 @@ public class Node {
             throw new RuntimeException(e);
         }
 
-//        BigInteger resBigInteger = Utils.byteToBigInteger(nodeId);
-//        System.out.println(resBigInteger);
-
     }
 
     public void printNodeID_Hash(){

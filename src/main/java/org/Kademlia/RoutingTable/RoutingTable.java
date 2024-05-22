@@ -60,6 +60,12 @@ public class RoutingTable {
         return nodes;
     }
 
+    //Adds a penalty to a node. This is used when a node fails to respond to a RPC.
+    public synchronized void penaltyContacto(Node n) {
+        Bucket bucket = this.buckets[this.getBucketIndex(n.getNodeId())];
+        bucket.penaltyContacto(n);
+    }
+
     @Override
     public String toString() {
         return "RoutingTable{" +
