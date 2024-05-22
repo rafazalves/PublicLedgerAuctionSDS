@@ -3,6 +3,7 @@ package org.gRPC;
 import io.grpc.BindableService;
 import io.grpc.Grpc;
 import io.grpc.ServerBuilder;
+import org.Kademlia.Client;
 import org.Kademlia.Node;
 import org.Kademlia.Server;
 
@@ -64,14 +65,22 @@ public class serverSetUp {
        final serverSetUp server = new serverSetUp();
        if(args.length == 2) {
            Node node = new Node(Integer.parseInt(args[0]), Integer.parseInt(args[1])); // port, IP
+
+           clientManager clientManager= new clientManager();
+           node.setClientManager(clientManager);
            try {
                server.start(node);
+
            } catch (IOException e) {
                throw new RuntimeException(e);
            }
        } else {
            Node node = new Node(80,12345);; // port, IP
            try {
+
+               clientManager clientManager= new clientManager();
+               node.setClientManager(clientManager);
+
                server.start(node);
            } catch (IOException e) {
                throw new RuntimeException(e);

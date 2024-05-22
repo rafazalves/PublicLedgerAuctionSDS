@@ -11,6 +11,7 @@ import java.util.Arrays;
 import org.bouncycastle.*;
 import org.bouncycastle.jcajce.provider.digest.SHA3;
 import org.Kademlia.utils.Utils;
+import org.gRPC.clientManager;
 
 import static org.Kademlia.proof.ProofOfWork.mineChallenge;
 
@@ -26,6 +27,8 @@ public class Node {
     private PublicKey pubKey;
     private final int nonce;
 
+    private clientManager clientManager;
+
     public Node(int nodePublicPort, int nodeIP) {
         this.nodePublicPort = nodePublicPort;
         this.nodeIP = nodeIP;
@@ -38,6 +41,14 @@ public class Node {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public org.gRPC.clientManager getClientManager() {
+        return clientManager;
+    }
+
+    public void setClientManager(org.gRPC.clientManager clientManager) {
+        this.clientManager = clientManager;
     }
 
     public void printNodeID_Hash(){
