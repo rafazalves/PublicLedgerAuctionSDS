@@ -106,6 +106,9 @@ public class Menu {
                 break;
             case 5:
                 System.out.println("Meus leilões");
+                for (Auction a : MyAuctions.values()) {
+                    System.out.println(a.getAuctionID() + " - " + a.getAuctionName());
+                }
                 break;
             case 6:
                 System.exit(0);
