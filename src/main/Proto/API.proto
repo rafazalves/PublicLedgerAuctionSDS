@@ -23,6 +23,7 @@ message storeRequest {
   bytes nodeId = 1;
   bytes value = 2;
   int64 timestamp = 3;
+  int64 nodePublicPort = 4;
 }
 message storeResponse {
   bytes nodeId = 1;

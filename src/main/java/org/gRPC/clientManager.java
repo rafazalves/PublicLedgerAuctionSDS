@@ -35,7 +35,6 @@ public class clientManager {
 
     public ledgerServiceGrpc.ledgerServiceFutureStub newFutureStub(Node n) throws IOException {
         final var connection = generateConnection(n);
-
         return ledgerServiceGrpc.newFutureStub(connection);
     }
 

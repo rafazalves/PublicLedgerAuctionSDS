@@ -29,7 +29,7 @@ public class serverSetUp {
 
        server = ServerBuilder
                .forPort(port)
-               .intercept(new interceptor_kbucket())
+               .intercept(new interceptor_kbucket(node))
                .addService((BindableService) serverImplInst)
                .build()
                .start();

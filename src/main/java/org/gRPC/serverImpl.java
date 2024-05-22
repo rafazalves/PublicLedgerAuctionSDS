@@ -29,9 +29,10 @@ public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
         var nodeIDtemp = request.getNodeId();
         var valuetemp = request.getValue();
         var timestamptemp = request.getTimestamp();
+        var porttemp= request.getNodePublicPort();
 
         //toDo: make the server efectevely store the information luis
-        boolean result = ??
+        //boolean result = ??
 
         responseObserver.onNext(storeResponse
                                 .newBuilder()
