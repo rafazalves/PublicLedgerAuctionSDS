@@ -1,6 +1,7 @@
 package org.Kademlia.RoutingTable;
 
 import org.Kademlia.*;
+import org.Kademlia.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ public class Bucket {
         this.K_Nodes = k;
     }
 
-    public synchronized Contactos removeFromContactos(Node n) { // remove node do bucket
+    public synchronized Contactos removeDoContactos(Node n) { // remove node
         Contactos c = ListContactos(n);
         this.contactos.remove(c);
         return c;
@@ -83,5 +84,22 @@ public class Bucket {
 
     public boolean isEmpty() {
         return contactos.isEmpty();
+    }
+
+    public synchronized void penaltyContacto(Node n) {
+        try {
+            Contactos contacto = this.ListContactos(n);
+            this.contactos.remove(contacto);
+            // Check if the contact has exceeded the maximum retries
+            if (contacto.getFailedTries() > Utils.MAX_RETRIES) {
+                this.removeDoContactos(n);
+            } else {
+                // Increment the failed attempts and re-add the contact to the list
+                contacto.setFailedTries(contacto.getFailedTries() + 1);
+                this.addContactos(contacto);
+            }
+        } catch (NoSuchElementException e) {
+            System.out.println("Contacto não encontrado");
+        }
     }
 }

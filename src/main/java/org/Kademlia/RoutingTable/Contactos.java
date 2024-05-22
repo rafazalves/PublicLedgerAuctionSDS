@@ -40,6 +40,8 @@ public class Contactos {
         this.failedTries++;
     }
 
+    //Ordena os nós com base na última vez que foram vistos, mais recente == maior
+    //Devolve 0 se ambos os contactos se referirem ao mesmo nó.
     public int compare(Contactos o) {
         if (this.getN().equals(o.getN())) // mesmo node
             return 0;
