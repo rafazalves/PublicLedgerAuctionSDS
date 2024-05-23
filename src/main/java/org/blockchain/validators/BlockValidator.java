@@ -2,7 +2,7 @@ package org.blockchain.validators;
 
 import org.blockchain.Block;
 import org.blockchain.Blockchain;
-import org.blockchain.consensus.Validator;
+import org.blockchain.Wallet;
 import org.blockchain.transaction.Transaction;
 import org.blockchain.utils.Utils;
 
@@ -57,7 +57,7 @@ public class BlockValidator {
         return currentTimestamp > previousTimestamp && currentTimestamp <= System.currentTimeMillis();
     }
 
-    public static boolean isValidPoS(Block block, Validator validator, Blockchain blockchain) {
+    public static boolean isValidPoS(Block block, Wallet validator, Blockchain blockchain) {
         // Verify that the chosen validator is not null
         if (validator == null) {
             return false;
@@ -71,7 +71,7 @@ public class BlockValidator {
         return true;
     }
     // Method to validate the signature or proof of ownership of the chosen validator
-    private static boolean validateValidatorSignature(Block block, Validator chosenValidator) {
+    private static boolean validateValidatorSignature(Block block, Wallet chosenValidator) {
         // Construct the data to be hashed based on the chosen validator
         String dataToHash = Integer.toString(block.getId()) + Long.toString(block.getblockTimestamp()) +
                 block.getPreviousHash() + Integer.toString(block.getNonce()) +

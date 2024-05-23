@@ -7,7 +7,6 @@ import java.util.List;
 
 import org.blockchain.consensus.ProofOfStake;
 import org.blockchain.consensus.ProofOfWork;
-import org.blockchain.consensus.Validator;
 import org.blockchain.transaction.Transaction;
 import static org.blockchain.utils.Utils.applySha256;
 import static org.blockchain.validators.TransactionValidator.isValidTransaction;
@@ -21,7 +20,7 @@ public class Block {
     private String previousHash;
     private String merkleRoot;
     private static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-    private List<Validator> validators = new ArrayList<>(); // List of validators and their stakes
+    private List<Wallet> validators = new ArrayList<>(); // List of validators and their stakes
 
     public Block(int id, String previousHash, ArrayList<Transaction> transactions) {
         this.id = id;
@@ -73,11 +72,11 @@ public class Block {
         this.merkleRoot = computeMerkleRoot;
     }
 
-    public List<Validator> getValidators() {
+    public List<Wallet> getValidators() {
         return validators;
     }
 
-    public void addValidator(Validator validator) {
+    public void addValidator(Wallet validator) {
         this.validators.add(validator);
     }
 

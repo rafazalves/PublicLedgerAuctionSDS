@@ -2,6 +2,7 @@ package org.blockchain.consensus;
 
 import org.blockchain.Block;
 import org.blockchain.Blockchain;
+import org.blockchain.Wallet;
 import org.blockchain.utils.Utils;
 import org.blockchain.validators.BlockValidator;
 
@@ -13,10 +14,10 @@ import static org.blockchain.utils.Utils.applySha256;
 public class ProofOfStake {
     public static void mineBlock(Block block, Blockchain blockchain) {
         // Select validators for forging the block
-        List<Validator> selectedValidators = blockchain.selectValidatorsForForging();
+        List<Wallet> selectedValidators = blockchain.selectValidatorsForForging();
 
         // Implement PoS mining algorithm to select a validator from the list
-        Validator chosenValidator = selectValidatorForForging(selectedValidators);
+        Wallet chosenValidator = selectValidatorForForging(selectedValidators);
 
         while (!BlockValidator.isValidPoS(block, chosenValidator, blockchain)) {
             block.setHash(calculateHashPoS(block, chosenValidator)); // Recalculate the hash based on the chosen validator
@@ -28,7 +29,7 @@ public class ProofOfStake {
     }
 
     // Method to select a validator from the list of selected validators for forging
-    private static Validator selectValidatorForForging(List<Validator> selectedValidators) {
+    private static Wallet selectValidatorForForging(List<Wallet> selectedValidators) {
         // Check if the list of selected validators is not empty
         if (selectedValidators.isEmpty()) {
             throw new IllegalArgumentException("No validators selected for forging.");
@@ -43,7 +44,7 @@ public class ProofOfStake {
     }
 
     // Method to calculate the hash of the block based on the chosen validator (PoS)
-    private static String calculateHashPoS(Block block, Validator validator) {
+    private static String calculateHashPoS(Block block, Wallet validator) {
         // Construct the data to be hashed based on the chosen validator
         String dataToHash = Integer.toString(block.getId()) + Long.toString(block.getblockTimestamp()) +
                 block.getPreviousHash() + Integer.toString(block.getNonce()) +

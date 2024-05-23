@@ -1,6 +1,5 @@
 package org.blockchain;
 
-import org.blockchain.consensus.Validator;
 import org.blockchain.validators.BlockValidator;
 
 import java.util.ArrayList;
@@ -11,7 +10,7 @@ public class Blockchain {
     private int difficulty;
     private List<Block> blockchainBlocks = new ArrayList<>();
     private int consensus;
-    private List<Validator> validators = new ArrayList<>(); // List of validators in the network
+    private List<Wallet> validators = new ArrayList<>(); // List of validators in the network
 
     public List<Block> getblockchainBlocks() {
         return blockchainBlocks;
@@ -25,7 +24,7 @@ public class Blockchain {
         return this.difficulty;
     }
 
-    public Blockchain(int consensus, int difficulty, List<Validator> validators) {
+    public Blockchain(int consensus, int difficulty, List<Wallet> validators) {
         this.difficulty = difficulty;
         this.consensus = consensus;
         this.validators = validators;
@@ -58,21 +57,21 @@ public class Blockchain {
         }
     }
 
-    public List<Validator> getValidators() {
+    public List<Wallet> getValidators() {
         return validators;
     }
 
-    public void addValidators(Validator validator) {
+    public void addValidators(Wallet validator) {
         validators.add(validator);
     }
 
     // Method to select validators based on their stakes for forging new blocks
-    public List<Validator> selectValidatorsForForging() {
-        List<Validator> selectedValidators = new ArrayList<>();
+    public List<Wallet> selectValidatorsForForging() {
+        List<Wallet> selectedValidators = new ArrayList<>();
 
         // Calculate total stake across all validators
         float totalStake = 0;
-        for (Validator validator : validators) {
+        for (Wallet validator : validators) {
             totalStake += validator.getStake();
         }
 
@@ -81,7 +80,7 @@ public class Blockchain {
         while (selectedValidators.size() < 2) {
             float randomNumber = random.nextFloat() * totalStake;
             float cumulativeWeight = 0;
-            for (Validator validator : validators) {
+            for (Wallet validator : validators) {
                 cumulativeWeight += validator.getStake();
                 if (cumulativeWeight >= randomNumber) {
                     selectedValidators.add(validator);

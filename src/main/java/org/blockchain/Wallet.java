@@ -5,9 +5,11 @@ import java.security.*;
 public class Wallet {
 
     private KeyPair walletKeyPair;
+    private float stake; // Amount of cryptocurrency held
 
-    public Wallet() {
+    public Wallet(float stake) {
         generateKeyPair();
+        this.stake = stake;
     }
 
     private void generateKeyPair() {
@@ -26,6 +28,14 @@ public class Wallet {
 
     public PrivateKey getPrivateKey() {
         return walletKeyPair.getPrivate();
+    }
+
+    public float getStake() {
+        return stake;
+    }
+
+    public void setStake(float stake) {
+        this.stake = stake;
     }
 
 }

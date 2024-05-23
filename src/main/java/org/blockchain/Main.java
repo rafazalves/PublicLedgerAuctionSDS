@@ -1,6 +1,5 @@
 package org.blockchain;
 
-import org.blockchain.consensus.Validator;
 import org.blockchain.transaction.Transaction;
 import org.blockchain.transaction.TransactionPool;
 import org.blockchain.validators.BlockChainValidator;
@@ -18,8 +17,8 @@ public class Main {
         TransactionPool transactionPool = new TransactionPool();
 
         // Create Wallets for 2 "Users"
-        Wallet user1 = new Wallet();
-        Wallet user2 = new Wallet();
+        Wallet user1 = new Wallet(1000);
+        Wallet user2 = new Wallet(800);
 
         // Initialize Blockchain with PoW
         Blockchain blockchain = new Blockchain(0,3, null);
@@ -54,24 +53,21 @@ public class Main {
     private static Blockchain createTestBlockchainPoS() {
 
         TransactionPool transactionPool = new TransactionPool();
-        List<Validator> validators = new ArrayList<>();
+        List<Wallet> validators = new ArrayList<>();
 
-        // Create Wallets for 2 "Users"
-        Wallet user1 = new Wallet();
-        Wallet user2 = new Wallet();
+        // Create Wallets for 4 "Users"
+        Wallet user1 = new Wallet(1000);
+        Wallet user2 = new Wallet(800);
+        Wallet user3 = new Wallet(600);
+        Wallet user4 = new Wallet(300);
 
-        // Create Validators
-        Validator validator1 = new Validator(1000);
-        Validator validator2 = new Validator(800);
-        Validator validator3 = new Validator(600);
-        Validator validator4 = new Validator(300);
-        validators.add(validator1);
-        validators.add(validator2);
-        validators.add(validator3);
+        validators.add(user1);
+        validators.add(user2);
+        validators.add(user3);
 
-        // Initialize Blockchain with PoW
+        // Initialize Blockchain with PoS
         Blockchain blockchain = new Blockchain(2,3, validators);
-        blockchain.addValidators(validator4);
+        blockchain.addValidators(user4);
         
         // Create Transaction from user1 to user2
         Transaction transaction1 = new Transaction(user1.getPublicKey(), user2.getPublicKey(), 50);
