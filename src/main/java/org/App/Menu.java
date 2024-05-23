@@ -25,6 +25,9 @@ public class Menu {
     private static final Logger logger = Logger.getLogger(serverSetUp.class.getName());
     private static final String USERS_FILE = "src\\main\\java\\org\\App\\data\\leilao.json";
     private static ArrayList<Auction> auctions = new ArrayList<Auction>();
+    
+    public static Blockchain blockchain = new Blockchain(1, 3, null);
+    public static TransactionPool transactionPool = new TransactionPool();
 
     public static void main(String[] args) {
         Map<Wallet, Auction> MyAuctions = new HashMap<Wallet, Auction>();
@@ -58,8 +61,6 @@ public class Menu {
         System.out.println("Server started");
         loadUsersFromFile();
         Wallet userNode = new Wallet(100); // Usar Wallet em vez de usar o Node?
-        Blockchain blockchain = new Blockchain(1, 3, null);
-        TransactionPool transactionPool = new TransactionPool();
 
         // cria node bootstrap cliente
 
@@ -300,6 +301,9 @@ public class Menu {
                         auctionDTO.auctionMaxPrice
                 );
                 auctions.add(auctionInfo);
+
+                Block block = new Block(blockchain.getLatestBlock().getId() + 1, blockchain.getLatestBlock().getHash(), new ArrayList<Transaction>());
+                blockchain.addBlock(block);
             }
         } catch (IOException e) {
             e.printStackTrace();
