@@ -9,12 +9,12 @@ import org.blockchain.transaction.TransactionPool;
 import org.gRPC.clientManager;
 import org.gRPC.serverSetUp;
 
-import java.io.IOException;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.io.*;
+import java.lang.reflect.Type;
 import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,9 +22,10 @@ import java.util.logging.Logger;
 public class Menu {
 
     private static final Logger logger = Logger.getLogger(serverSetUp.class.getName());
+    private static final String USERS_FILE = "src\\main\\java\\org\\App\\data\\leilao.json";
+    private static ArrayList<Auction> auctions = new ArrayList<Auction>();
 
     public static void main(String[] args) {
-        ArrayList<Auction> auctions = new ArrayList<Auction>();
         Map<Wallet, Auction> MyAuctions = new HashMap<Wallet, Auction>();
         Map<Wallet, Auction> SubAuctions = new HashMap<Wallet, Auction>();
         Scanner stdin = new Scanner(System.in);
@@ -54,12 +55,12 @@ public class Menu {
             throw new RuntimeException(e);
         }
         System.out.println("Server started");
+        loadUsersFromFile();
         Wallet userNode = new Wallet(100); // Usar Wallet em vez de usar o Node?
         Blockchain blockchain = new Blockchain(1, 3, null);
         TransactionPool transactionPool = new TransactionPool();
 
         // cria node bootstrap cliente
-        // ler ficheiro leilao
 
        while (true) {
             System.out.println("Menu:");
@@ -92,7 +93,7 @@ public class Menu {
                         id = lastElement.getAuctionID() + 1;
                     }
 
-                    Auction auction = new Auction(id, name, userNode.getPublicKey(), price, maxPrice);
+                    Auction auction = new Auction(id, name, userNode, price, maxPrice);
                     auctions.add(auction);
                     MyAuctions.put(userNode, auction);
 
@@ -128,6 +129,22 @@ public class Menu {
 
                             // verificar se num licitado é maior que o atual e menor que maximo
                             if(bid>selectedAuction.getAuctionCurrentPrice() && bid<selectedAuction.getAuctionMaxPrice()){
+                                Transaction transaction = new Transaction(selectedAuction.getAuctionOwner(), selectedAuction.getAuctionCurrentWinner(), selectedAuction.getAuctionCurrentPrice());
+                                transaction.generateSignature(selectedAuction.getOwnerWallet().getPrivateKey());
+                                Transaction transaction2 = new Transaction(userNode.getPublicKey(), selectedAuction.getAuctionOwner(), bid);
+                                transaction2.generateSignature(userNode.getPrivateKey());
+                                Block selectedBlock = null;
+                                for (Block a : blockchain.getblockchainBlocks()) {
+                                    if (a.getId() == selectedAuction.getAuctionID()) {
+                                        selectedBlock = a;
+                                        break;
+                                    }
+                                }
+                                if(selectedBlock.addTransaction(transaction) && selectedBlock.addTransaction(transaction2)) {
+                                    transactionPool.addTransaction(transaction);
+                                    transactionPool.addTransaction(transaction2);
+                                }
+                                selectedAuction.setAuctionCurrentWinner(userNode.getPublicKey());
                                 selectedAuction.setAuctionCurrentPrice(bid);
                             }else if(bid>selectedAuction.getAuctionMaxPrice()){
                                 System.out.println("Valor Licitado excede Max Price.");
@@ -260,6 +277,32 @@ public class Menu {
             stdin.next(); // Consume the invalid input
         }
         return stdin.nextFloat();
+    }
+
+    // Load existing users from json file
+    private static void loadUsersFromFile() {
+        Gson gson = new Gson();
+        Random random = new Random();
+
+        try (FileReader reader = new FileReader(USERS_FILE)) {
+            Type auctionListType = new TypeToken<List<AuctionDTO>>() {}.getType();
+            List<AuctionDTO> auctionDTOs = gson.fromJson(reader, auctionListType);
+
+            for (AuctionDTO auctionDTO : auctionDTOs) {
+                int randomNumber = random.nextInt(1000 - 100 + 1) + 100;
+                Wallet ownerWallet = new Wallet(randomNumber);
+                Auction auctionInfo = new Auction(
+                        auctionDTO.auctionID,
+                        auctionDTO.auctionName,
+                        ownerWallet,
+                        auctionDTO.auctionStartPrice,
+                        auctionDTO.auctionMaxPrice
+                );
+                auctions.add(auctionInfo);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 
