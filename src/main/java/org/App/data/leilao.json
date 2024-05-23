@@ -1,0 +1,5 @@
+[{"auctionID":1,"auctionName":"Guitarra","auctionOwner":"João","auctionStartPrice":100,"auctionMaxPrice":500},
+  {"auctionID":2,"auctionName":"Carro","auctionOwner":"Rui","auctionStartPrice":500,"auctionMaxPrice":2000},
+  {"auctionID":3,"auctionName":"Colar","auctionOwner":"Joana","auctionStartPrice":20,"auctionMaxPrice":500},
+  {"auctionID":4,"auctionName":"Camisola","auctionOwner":"Miguel","auctionStartPrice":50,"auctionMaxPrice":200},
+  {"auctionID":5,"auctionName":"Bola","auctionOwner":"Maria","auctionStartPrice":5,"auctionMaxPrice":45}]
