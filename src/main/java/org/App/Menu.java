@@ -61,14 +61,16 @@ public class Menu {
         // cria node bootstrap cliente
         // ler ficheiro leilao
 
-        while (true) {
+       while (true) {
             System.out.println("Menu:");
             System.out.println("1 - Criar leilão");
             System.out.println("2 - Licitar");
             System.out.println("3 - Ver leilões");
             System.out.println("4 - Subscrever leilão");
-            System.out.println("5 - Meus leilões");
-            System.out.println("6 - Sair");
+            System.out.println("5 - Leilões Subscritos");
+            System.out.println("6 - Leilões a Vencer");
+            System.out.println("7 - Meus leilões");
+            System.out.println("8 - Sair");
 
             System.out.print("Escolha uma opção: ");
 
@@ -102,7 +104,7 @@ public class Menu {
                 case 2:
                     System.out.println("Licitar");
                     for (Auction a : auctions) {
-                        System.out.println(a.getAuctionID() + " - " + a.getAuctionName());
+                        System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
                     }
                     System.out.println("Insira o ID do leilão:");
                     int auctionID = stdin.nextInt();
@@ -175,24 +177,66 @@ public class Menu {
                 case 3:
                     System.out.println("Ver leilões");
                     for (Auction a : auctions) {
-                        System.out.println(a.getAuctionID() + " - " + a.getAuctionName());
+                        if(a.getAuctionStatus()==0){
+                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
+                        }else{
+                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Leilão acabado. Preço final: " + a.getAuctionCurrentPrice() + ") ");
+                        }
                     }
                     break;
                 case 4:
                     System.out.println("Subscrever leilão");
                     for (Auction a : auctions) {
-                        if (a.getAuctionCurrentWinner() == userNode.getPublicKey()) {
-                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName());
+                        System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
+                    }
+                    System.out.println("Insira o ID do leilão que pretende subscrever:");
+                    int auct = stdin.nextInt();
+                    Auction subAuction = null;
+                    for (Auction a : auctions) {
+                        if (a.getAuctionID() == auct) {
+                            subAuction = a;
+                            break;
                         }
+                    }
+                    if (subAuction != null) {
+                        SubAuctions.put(userNode, subAuction);
+                    } else {
+                        System.out.println("Auction with ID " + auct + " not found.");
                     }
                     break;
                 case 5:
-                    System.out.println("Meus leilões");
-                    for (Auction a : MyAuctions.values()) {
-                        System.out.println(a.getAuctionID() + " - " + a.getAuctionName());
+                    System.out.println("Leilões Subscritos");
+                    for (Auction a : SubAuctions.values()) {
+                        if(a.getAuctionStatus()==0){
+                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
+                        }else{
+                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Leilão acabado. Preço final: " + a.getAuctionCurrentPrice() + ") ");
+                        }
                     }
                     break;
                 case 6:
+                    System.out.println("Leilões a Vencer");
+                    for (Auction a : auctions) {
+                        if (a.getAuctionCurrentWinner() == userNode.getPublicKey()) {
+                            if(a.getAuctionStatus()==0){
+                                System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
+                            }else{
+                                System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Leilão acabado. Preço final: " + a.getAuctionCurrentPrice() + ") ");
+                            }
+                        }
+                    }
+                    break;
+                case 7:
+                    System.out.println("Meus leilões");
+                    for (Auction a : MyAuctions.values()) {
+                        if(a.getAuctionStatus()==0){
+                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
+                        }else{
+                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Leilão acabado. Preço final: " + a.getAuctionCurrentPrice() + ") ");
+                        }
+                    }
+                    break;
+                case 8:
                     System.exit(0);
                     break;
                 default:
