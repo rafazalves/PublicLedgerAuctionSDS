@@ -1,5 +1,6 @@
 package org.App;
 
+import org.App.data.AuctionDTO;
 import org.Kademlia.Node;
 import org.blockchain.Block;
 import org.blockchain.Blockchain;

@@ -1,5 +1,7 @@
 package org.App;
 
+import org.blockchain.Wallet;
+
 import javax.swing.*;
 import java.security.PublicKey;
 import java.security.Timestamp;
@@ -18,6 +20,7 @@ public class Auction {
     private float auctionCurrentPrice;
     private float auctionWinnerPrice;
     private final float auctionMaxPrice;
+    private Wallet ownerWallet;
 
     public Auction(int auctionID, String auctionName, PublicKey auctionOwner, PublicKey auctionWinner, int auctionStatus, long auctionStartDate,
                    long auctionEndDate, int auctionStartPrice, int auctionCurrentPrice, int auctionWinnerPrice, float auctionMaxPrice) {
@@ -34,10 +37,10 @@ public class Auction {
         this.auctionMaxPrice = auctionMaxPrice;
     }
 
-    public Auction(int auctionID, String auctionName, PublicKey auctionOwner, int auctionStartPrice ,float auctionMaxPrice){
+    public Auction(int auctionID, String auctionName, Wallet ownerWallet, int auctionStartPrice , float auctionMaxPrice){
         this.auctionID = auctionID;
         this.auctionName = auctionName;
-        this.auctionOwner = auctionOwner;
+        this.auctionOwner = ownerWallet.getPublicKey();
         this.auctionMaxPrice = auctionMaxPrice;
         this.auctionStartDate = new Date().getTime();
         this.auctionStartPrice = auctionStartPrice;
@@ -49,7 +52,7 @@ public class Auction {
         Date currentDate = new Date(auctionStartDate);
         currentDate.setMonth(currentDate.getMonth() + 1);
         this.auctionEndDate = currentDate.getTime();
-
+        this.ownerWallet = ownerWallet;
     }
 
     public int getAuctionID() {
@@ -70,6 +73,10 @@ public class Auction {
 
     public PublicKey getAuctionWinner() {
         return auctionWinner;
+    }
+
+    public Wallet getOwnerWallet(){
+        return ownerWallet;
     }
 
     public int getAuctionStatus() {
