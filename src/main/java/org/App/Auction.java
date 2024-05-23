@@ -6,9 +6,10 @@ import java.security.Timestamp;
 import java.util.Date;
 
 public class Auction {
-private final int auctionID;
+    private final int auctionID;
     private final String auctionName;
     private final PublicKey auctionOwner;
+    private PublicKey auctionCurrentWinner;
     private PublicKey auctionWinner;
     private int auctionStatus;
     private final long auctionStartDate;
@@ -34,16 +35,17 @@ private final int auctionID;
     }
 
     public Auction(int auctionID, String auctionName, PublicKey auctionOwner, int auctionStartPrice ,float auctionMaxPrice){
-        this.auctionID = 0;
+        this.auctionID = auctionID;
         this.auctionName = auctionName;
         this.auctionOwner = auctionOwner;
         this.auctionMaxPrice = auctionMaxPrice;
         this.auctionStartDate = new Date().getTime();
         this.auctionStartPrice = auctionStartPrice;
-        this.auctionCurrentPrice = 0;
+        this.auctionCurrentPrice = auctionStartPrice;
         this.auctionStatus = 0;
         this.auctionWinnerPrice = 0;
         this.auctionWinner = null;
+        this.auctionCurrentWinner = null;
         Date currentDate = new Date(auctionStartDate);
         currentDate.setMonth(currentDate.getMonth() + 1);
         this.auctionEndDate = currentDate.getTime();
@@ -60,6 +62,10 @@ private final int auctionID;
 
     public PublicKey getAuctionOwner() {
         return auctionOwner;
+    }
+
+    public PublicKey getAuctionCurrentWinner() {
+        return auctionCurrentWinner;
     }
 
     public PublicKey getAuctionWinner() {
@@ -96,6 +102,10 @@ private final int auctionID;
 
     public void setAuctionWinner(PublicKey auctionWinner) {
         this.auctionWinner = auctionWinner;
+    }
+
+    public void setAuctionCurrentWinner(PublicKey auctionCurrentWinner) {
+        this.auctionCurrentWinner = auctionCurrentWinner;
     }
 
     public void setAuctionStatus(int auctionStatus) {
