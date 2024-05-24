@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 public class Menu {
 
     private static final Logger logger = Logger.getLogger(serverSetUp.class.getName());
-    private static final String USERS_FILE = "src\\main\\java\\org\\App\\data\\leilao.json";
+    private static final String USERS_FILE = "src/main/java/org/App/data/leilao.json";
     private static ArrayList<Auction> auctions = new ArrayList<Auction>();
     
     public static Blockchain blockchain = new Blockchain(1, 3, null);
@@ -45,19 +45,17 @@ public class Menu {
 
         clientManager clientManager= new clientManager();
         node.setClientManager(clientManager);
-        try {
-            server.start(node);
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        logger.setLevel(Level.FINEST);
+        new Thread(() -> {
+            try {
+                server.start(node);
+                logger.setLevel(Level.FINEST);
+                server.blockUntilShutdown();
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
 
-        try {
-            server.blockUntilShutdown();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
         System.out.println("Server started");
         loadUsersFromFile();
         Wallet userNode = new Wallet(100); // Usar Wallet em vez de usar o Node?
@@ -224,6 +222,11 @@ public class Menu {
                     }
                     break;
                 case 5:
+                    if (SubAuctions.isEmpty()){
+                        System.out.println("Você não tem leilões subscritos.");
+                        break;
+                    }
+
                     System.out.println("Leilões Subscritos");
                     for (Auction a : SubAuctions.values()) {
                         if(a.getAuctionStatus()==0){
