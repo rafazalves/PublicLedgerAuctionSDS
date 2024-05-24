@@ -50,22 +50,22 @@ public class interceptor_kbucket implements ServerInterceptor {
         SocketAddress clientAddress = call.getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR);
         int clientNodeIp = extractClientAddressAsInt(clientAddress);
 
-        return new ForwardingServerCallListener.SimpleForwardingServerCallListener<>(next.startCall(call, headers)){
+        return new ForwardingServerCallListener.SimpleForwardingServerCallListener<ReqT>(next.startCall(call, headers)){
             @Override
             public void onMessage(ReqT message) {
 
                 byte[] nodeId;
                 int port;
 
-                if(message instanceof ping){
-                    nodeId = ((ping) message).getNodeId;
-                    port = ((ping) message).getNodePublicPort;
+                if(message instanceof pingP){
+                    nodeId = ((pingP) message).getNodeId().toByteArray();
+                    port = (int) ((pingP) message).getNodePublicPort();
                 } else if(message instanceof storeRequest){
-                    nodeId = ((storeRequest) message).getNodeId;
-                    port = ((storeRequest) message).getNodePublicPort;
+                    nodeId = ((storeRequest) message).getNodeId().toByteArray();
+                    port = (int) ((storeRequest) message).getNodePublicPort();
                 } else if(message instanceof target){
-                    nodeId = ((target) message).getNodeId;
-                    port = ((target) message).getNodePublicPort;
+                    nodeId = ((target) message).getNodeId().toByteArray();
+                    port = (int) ((target) message).getNodePublicPort();
                 } else{
                     super.onMessage(message); // continue with normal onMessage
                     return;
@@ -76,7 +76,7 @@ public class interceptor_kbucket implements ServerInterceptor {
                 Context fork = Context.current().fork();
 
                 //todo
-                fork.run(() -> node.handleSeenNode(newNode));
+                //fork.run(() -> node.handleSeenNode(newNode));
 
                 super.onMessage(message);
             }

@@ -1,19 +1,10 @@
 syntax = "proto3";
 
-package "ledger";
-
-option java_package = "org";
+option java_package = "org.gRPC";
 option java_multiple_files = true;
 option java_outer_classname = "publicLedgerServer";
 
-service ledgerService {
-  rpc ping(ping) returns (ping);
-  rpc store(storeRequest) returns (storeResponse);
-  rpc findNode(target) returns (stream Nodes);
-  rpc findValue(target) returns (stream Values);
-}
-
-message ping {
+message pingP {
   int64 nodeIP = 1;
   int64 nodePublicPort = 2;
   bytes nodeId = 3;
@@ -25,6 +16,7 @@ message storeRequest {
   int64 timestamp = 3;
   int64 nodePublicPort = 4;
 }
+
 message storeResponse {
   bytes nodeId = 1;
   int64 timestamp = 2;
@@ -54,5 +46,10 @@ message FValues{
   int64 timestamp = 6;
 }
 
-
+service ledgerService {
+  rpc ping(pingP) returns (pingP);
+  rpc store(storeRequest) returns (storeResponse);
+  rpc findNode(target) returns (stream FNodes);
+  rpc findValue(target) returns (stream FValues);
+}
 

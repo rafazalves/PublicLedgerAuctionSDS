@@ -29,12 +29,12 @@ public class clientManager {
     }
 
     public ledgerServiceGrpc.ledgerServiceStub newStub(Node n) throws IOException {
-        final var connection = generateConnection(n);
+        final ManagedChannel connection = generateConnection(n);
         return ledgerServiceGrpc.newStub(connection);
     }
 
     public ledgerServiceGrpc.ledgerServiceFutureStub newFutureStub(Node n) throws IOException {
-        final var connection = generateConnection(n);
+        final ManagedChannel connection = generateConnection(n);
         return ledgerServiceGrpc.newFutureStub(connection);
     }
 

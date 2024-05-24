@@ -13,7 +13,7 @@ public class StorageManager {
     public synchronized boolean addValue(BigInteger key, StorageValue value) {
         // If the key is already present, check the timestamp and update only if newer.
         if (storage.containsKey(key)) {
-            var aux = storage.get(key);
+            StorageValue aux = storage.get(key);
             if (aux.getTimestamp() < value.getTimestamp()) {
                 storage.put(key, value);
                 return true;
@@ -32,7 +32,7 @@ public class StorageManager {
     }
 
     public synchronized boolean put(BigInteger key, BigInteger value, long timestamp) {
-        var Value = new StorageValue(value, timestamp);
+        StorageValue Value = new StorageValue(value, timestamp);
         return this.addValue(key, Value);
     }
 

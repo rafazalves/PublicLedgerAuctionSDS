@@ -32,7 +32,7 @@ public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
     }
 
     @Override
-    public void ping(ping request, StreamObserver<ping> responseObserver){
+    public void ping(pingP request, StreamObserver<pingP> responseObserver){
         //enviar resposta para a requisiçao grpc
         responseObserver.onNext(request);
         responseObserver.onCompleted();
@@ -42,19 +42,19 @@ public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
     @Override
     public void store(storeRequest request, StreamObserver<storeResponse> responseObserver){
 
-        var key = new BigInteger(1, request.getNodeId().toByteArray());
-        var valuetemp = request.getValue().toByteArray();
-        var timestamptemp = request.getTimestamp();
-        var porttemp= request.getNodePublicPort();
+        BigInteger key = new BigInteger(1, request.getNodeId().toByteArray());
+        byte[] valuetemp = request.getValue().toByteArray();
+        long timestamptemp = request.getTimestamp();
+        long porttemp= request.getNodePublicPort();
 
 
-        var Value = new StorageValue(new BigInteger(1, valuetemp), timestamptemp);
+        StorageValue Value = new StorageValue(new BigInteger(1, valuetemp), timestamptemp);
         boolean result = storageManager.addValue(key, Value);
 
         responseObserver.onNext(storeResponse
                                 .newBuilder()
                         .setTimestamp(timestamptemp)
-                        .setNodeId(nodeIDtemp)
+                        .setNodeId(request.getNodeId())
                         .setResult(result)
                                 .build());
 
@@ -63,21 +63,18 @@ public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
 
     @Override
     public void findNode(target request, StreamObserver<FNodes> responseObserver){
-        var nodeId_temp = request.getNodeId;
-        var port_temp = request.getNodePublicPort;
-        var nodeIp = request.getNodeIP;
 
-        //ToDo: make the findClosestNodes in Node class
-        var neighbors = routingTable.findClosest(nodeId_temp, Utils.K);
-        ArrayList<Node> closestNodes = new ArrayList<Node>();
 
-        for (var ntemp : neighbors) {
+        List<Node> neighbors = routingTable.findClosest(request.getNodeId().toByteArray(), Utils.K);
+        ArrayList<Node> closestNodes = new ArrayList<>();
+
+        for (Node ntemp : neighbors) {
             closestNodes.add(ntemp);
         }
         for(Node closeNode : closestNodes) {
-            final var clnode = FNodes.newBuilder()
+            final FNodes clnode = FNodes.newBuilder()
                     .setNodeId(ByteString.copyFrom(closeNode.getNodeId()))
-                    .setNodeIp(closeNode.getNodeIP())
+                    .setNodeIp(Integer.toString(closeNode.getNodeIP()))
                     .setPort(closeNode.getNodePublicPort())
                     .setTimestamp(closeNode.getNodeTimestamp())
                     .build();
@@ -93,34 +90,39 @@ public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
     // or return the closest node to the targetID
     @Override
     public void findValue(target request, StreamObserver<FValues> responseObserver){
-        var key = new BigInteger(1, request.getKey().toByteArray());
-        var value = storageManager.getValue(key);
+        BigInteger key = new BigInteger(1, request.getNodeId().toByteArray());
+        byte[] keyByte = request.getNodeId().toByteArray();
+        StorageValue value = storageManager.getValue(key);
+
+        byte[] valueByteArray = value.getValue().toByteArray();
+        long timestamp = value.getTimestamp();
 
 
         //encontrou o valor
         if(value != null){
-            FValue valueRes = FValue.newBuilder()
+            FValues valueRes = FValues.newBuilder()
                     .setFoundValue(true)
-                    .setValue(ByteString.copyFrom(value))
+                    .setValue(ByteString.copyFrom(valueByteArray))
+                    .setTimestamp(timestamp)
                     .build();
 
             responseObserver.onNext(valueRes);
 
         }else{ // nao encontrou o valor -> comporta se como um findNode
 
-            //ToDo: make the findClosestNodes in Node class
-            var neighbors = routingTable.findClosest(nodeId_request, Utils.K);
+
+            List<Node> neighbors = routingTable.findClosest(keyByte, Utils.K);
             ArrayList<Node> closestNodes = new ArrayList<Node>();
 
-            for (var ntemp : neighbors) {
+            for (Node ntemp : neighbors) {
                 closestNodes.add(ntemp);
             }
 
             for(Node closeNode : closestNodes) {
-                final var clnode = Fvalues.newBuilder()
+                final FValues clnode = FValues.newBuilder()
                         .setFoundValue(false)
                         .setNodeId(ByteString.copyFrom(closeNode.getNodeId()))
-                        .setNodeIp(closeNode.getNodeIP())
+                        .setNodeIp(String.valueOf(closeNode.getNodeIP()))
                         .setPort(closeNode.getNodePublicPort())
                         .setTimestamp(closeNode.getNodeTimestamp())
                         .build();
