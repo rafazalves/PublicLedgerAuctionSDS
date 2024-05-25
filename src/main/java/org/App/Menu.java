@@ -15,6 +15,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.io.*;
 import java.lang.reflect.Type;
+import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,6 +33,7 @@ public class Menu {
     public static Map<Node, Auction> MyAuctions = new HashMap<Node, Auction>();
     public static  Map<Node, Auction> SubAuctions = new HashMap<Node, Auction>();
     public static clientManager clientManager = new clientManager();
+    public static AuctionHandler auctionHandler = new AuctionHandler();
 
     public static void main(String[] args) {
 
@@ -123,7 +125,8 @@ public class Menu {
 
                     Block block = new Block(blockchain.getLatestBlock().getId() + 1, blockchain.getLatestBlock().getHash(), new ArrayList<Transaction>());
                     blockchain.addBlock(block);
-                    AuctionHandler auctionHandler = new AuctionHandler(auction, kadNode);
+                    auctionHandler = new AuctionHandler(auction, kadNode);
+                    auctionHandler.storeBid(Instant.now().getEpochSecond());
                 break;
 
                 case 2:
@@ -271,7 +274,7 @@ public class Menu {
                             System.out.println("Status do Leilão: Em curso");
                             System.out.println("Insira o valor da licitação:");
                             float bid = getValidFloat(Menu.scanner);
-
+                            auctionHandler = new AuctionHandler(selectedAuction,knode);
                             // verificar se num licitado é maior que o atual e menor que maximo
                             if (bid > selectedAuction.getAuctionCurrentPrice() && bid < selectedAuction.getAuctionMaxPrice()) {
                                 Transaction transaction = new Transaction(selectedAuction.getAuctionOwner(), selectedAuction.getAuctionCurrentWinner(), selectedAuction.getAuctionCurrentPrice());
@@ -291,6 +294,9 @@ public class Menu {
                                 }
                                 selectedAuction.setAuctionCurrentWinner(userNode.getPubKey());
                                 selectedAuction.setAuctionCurrentPrice(bid);
+
+                                auctionHandler.storeBid(Instant.now().getEpochSecond());
+
                             } else if (bid > selectedAuction.getAuctionMaxPrice()) {
                                 System.out.println("Valor Licitado excede Max Price.");
                                 System.out.println("Leilão terminado com licitação de " + selectedAuction.getAuctionMaxPrice());
@@ -309,6 +315,7 @@ public class Menu {
                                 if (selectedBlock.addTransaction(transaction)) {
                                     transactionPool.addTransaction(transaction);
                                 }
+                                auctionHandler.storeBid(Instant.now().getEpochSecond());
                             } else if (bid == selectedAuction.getAuctionMaxPrice()) {
                                 System.out.println("Leilão terminado com licitação de " + bid);
                                 selectedAuction.setAuctionCurrentPrice(bid);
@@ -326,6 +333,7 @@ public class Menu {
                                 if (selectedBlock.addTransaction(transaction)) {
                                     transactionPool.addTransaction(transaction);
                                 }
+                                auctionHandler.storeBid(Instant.now().getEpochSecond());
                             } else {
                                 System.out.println("Valor Licitado insuficiente.");
                             }

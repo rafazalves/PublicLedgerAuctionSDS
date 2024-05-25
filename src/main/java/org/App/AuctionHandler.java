@@ -1,6 +1,7 @@
 package org.App;
 import org.Kademlia.KadNode;
 import org.Kademlia.Storage.StorageManager;
+import org.Kademlia.utils.Utils;
 import org.blockchain.Blockchain;
 
 import java.math.BigInteger;
@@ -17,11 +18,18 @@ public class AuctionHandler {
         this.node = node;
         long timestamp = System.currentTimeMillis() / 1000L;
         storageManager = node.getStorageManager();
-        storageManager.put(BigInteger.valueOf(auction.getAuctionID()), BigInteger.valueOf(auction.getAuctionID()), timestamp);
+        storageManager.put(Utils.byteToBigInteger(node.getNode().getNodeId()), BigInteger.valueOf(auction.getAuctionID()), timestamp);
+    }
+
+    public AuctionHandler(){
     }
 
     public void storeBid(long timestamp){
-        storageManager.put(BigInteger.valueOf(auction.getAuctionID()), BigInteger.valueOf(auction.getAuctionID()), timestamp);
+        storageManager.put(Utils.byteToBigInteger(node.getNode().getNodeId()), BigInteger.valueOf(auction.getAuctionID()), timestamp);
+    }
+
+    public Auction getAuction(){
+        return this.auction;
     }
 
     // fazer funçoes de prpagação
