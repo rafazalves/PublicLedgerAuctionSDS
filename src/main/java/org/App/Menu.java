@@ -15,6 +15,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.io.*;
 import java.lang.reflect.Type;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
@@ -127,6 +128,7 @@ public class Menu {
                     blockchain.addBlock(block);
                     auctionHandler = new AuctionHandler(auction, kadNode);
                     auctionHandler.storeBid(Instant.now().getEpochSecond());
+                    clientManager.doStore(kadNode,kadNode, auctionHandler.getStorageManager().getValue(BigInteger.valueOf(auction.getAuctionID())));
                 break;
 
                 case 2:
@@ -296,6 +298,7 @@ public class Menu {
                                 selectedAuction.setAuctionCurrentPrice(bid);
 
                                 auctionHandler.storeBid(Instant.now().getEpochSecond());
+                                clientManager.doStore(knode,knode, auctionHandler.getStorageManager().getValue(BigInteger.valueOf(selectedAuction.getAuctionID())));
 
                             } else if (bid > selectedAuction.getAuctionMaxPrice()) {
                                 System.out.println("Valor Licitado excede Max Price.");
@@ -316,6 +319,7 @@ public class Menu {
                                     transactionPool.addTransaction(transaction);
                                 }
                                 auctionHandler.storeBid(Instant.now().getEpochSecond());
+                                clientManager.doStore(knode,knode, auctionHandler.getStorageManager().getValue(BigInteger.valueOf(selectedAuction.getAuctionID())));
                             } else if (bid == selectedAuction.getAuctionMaxPrice()) {
                                 System.out.println("Leilão terminado com licitação de " + bid);
                                 selectedAuction.setAuctionCurrentPrice(bid);
@@ -334,6 +338,7 @@ public class Menu {
                                     transactionPool.addTransaction(transaction);
                                 }
                                 auctionHandler.storeBid(Instant.now().getEpochSecond());
+                                clientManager.doStore(knode,knode, auctionHandler.getStorageManager().getValue(BigInteger.valueOf(selectedAuction.getAuctionID())));
                             } else {
                                 System.out.println("Valor Licitado insuficiente.");
                             }

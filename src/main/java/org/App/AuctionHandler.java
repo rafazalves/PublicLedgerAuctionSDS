@@ -32,6 +32,9 @@ public class AuctionHandler {
         return this.auction;
     }
 
+    public StorageManager getStorageManager(){
+        return this.storageManager;
+    }
     // fazer funçoes de prpagação
     // quando cria leilao ou faz uma licitação mandar isso para os outros nodes da rede
 }
