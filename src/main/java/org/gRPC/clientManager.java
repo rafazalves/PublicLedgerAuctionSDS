@@ -7,10 +7,13 @@ import io.grpc.stub.StreamObserver;
 import org.Kademlia.Node;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.logging.Logger;
 import org.Kademlia.KadNode;
+import org.Kademlia.Storage.StorageValue;
 
 public class clientManager {
 
@@ -48,11 +51,11 @@ public class clientManager {
         ledgerServiceGrpc.ledgerServiceStub stub = null;
         try {
             stub = this.newStub(n.getNode());
-        stub.ping(pingP.newBuilder().setNodeId(ByteString.copyFrom(n.getNode().getNodeId())).build(),
+            stub.ping(pingP.newBuilder().setNodeId(ByteString.copyFrom(n.getNode().getNodeId())).build(),
                 new StreamObserver<pingP>() {
                     @Override
                     public void onNext(pingP pingP) {
-                        logger.info("ping");
+                        logger.info("Doing ping");
                         try {
                             n.handleSeenNode(n1.getNode());
                         } catch (NoSuchAlgorithmException e) {
@@ -79,7 +82,6 @@ public class clientManager {
         );
         } catch (IOException e) {
             e.printStackTrace();
-            //todo
             try {
                 n.printErrorHandle(n1.getNode());
             } catch (NoSuchAlgorithmException ex) {
@@ -88,8 +90,138 @@ public class clientManager {
         }
     }
 
+    //store value tem que ter a timestamp atualizada
+    public void doStore(KadNode n, KadNode n1, StorageValue storeValue){
+        logger.info("Will try to Store with nodeId: " + Arrays.toString(n.getNode().getNodeId()));
+        ledgerServiceGrpc.ledgerServiceStub stub = null;
 
-    public void doStore(Node n){
+        try {
+            stub = this.newStub(n.getNode());
+        } catch (IOException e) {
+           e.printStackTrace();
+            try {
+                n.printErrorHandle(n1.getNode()); //todo
+            } catch (NoSuchAlgorithmException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+
+        byte[] valueByte = storeValue.getValue().toByteArray();
+
+        storeRequest storeRequest = org.gRPC.storeRequest.newBuilder()
+                .setNodeId(ByteString.copyFrom(n.getNode().getNodeId()))
+                .setValue(ByteString.copyFrom(valueByte))
+                .setTimestamp(storeValue.getTimestamp())
+                .setNodePublicPort(n.getNode().getNodePublicPort())
+                .build();
+
+        stub.store(storeRequest,
+                new StreamObserver<storeResponse>() {
+                    @Override
+                    public void onNext(storeResponse storeResponse) {
+                        logger.info("Doing store");
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        throwable.printStackTrace();
+                        try {
+                            n.printErrorHandle(n1.getNode());
+                        } catch (NoSuchAlgorithmException e) {
+                            throw new RuntimeException(e);
+                        }}
+
+                    @Override
+                    public void onCompleted() {
+                        logger.info("store Completed");
+                        try {
+                            n.handleSeenNode(n1.getNode());
+                        } catch (NoSuchAlgorithmException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+    }
+
+    public void findNode(KadNode ourNode, Node destino ){
+        logger.info("Trying to find Node");
+        ledgerServiceGrpc.ledgerServiceStub stub = null;
+        try {
+            stub = this.newStub(ourNode.getNode());
+        } catch (IOException e) {
+            e.printStackTrace();
+            try {
+                ourNode.printErrorHandle(destino);
+            } catch (NoSuchAlgorithmException i) {
+                throw new RuntimeException(i);
+            }
+        }
+
+        target targetNode = target.newBuilder()
+                .setNodeId(ByteString.copyFrom(destino.getNodeId()))
+                .setNodePublicPort(destino.getNodePublicPort())
+                .setNodeIP(destino.getNodeIP())
+                .build();
+
+        LinkedList<Node> nodeList = new LinkedList<>();
+
+
+        stub.findNode(targetNode,
+                new StreamObserver<FNodes>() {
+                    @Override
+                    public void onNext(FNodes fNodes) {
+                        ByteString nodeId = fNodes.getNodeId();
+                        int nodeIp = Integer.parseInt(fNodes.getNodeIp());
+                        int port = Math.toIntExact(fNodes.getPort());
+                        long timestamp = fNodes.getTimestamp();
+
+                        Node nn = new Node(port, nodeIp);
+
+                        nodeList.add(nn);
+
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        logger.info("Erro em Find Node");
+                        try {
+                            ourNode.printErrorHandle(destino);
+                        } catch (NoSuchAlgorithmException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        if (nodeList.isEmpty()){
+                            logger.info("Nao encontrou nada");
+                        }else {
+                            logger.info("nodes encontrados");
+                        }
+                    }
+                });
+
+    }
+
+    public void findValue(KadNode node, KadNode destinoNode, byte[] targetByte){
+        BigInteger printnodeId = new BigInteger(1, node.getNode().getNodeId());
+        logger.info("trying to Find the value for the node: " + printnodeId);
+
+        ledgerServiceGrpc.ledgerServiceStub stub = null;
+
+        try {
+            stub = this.newStub(node.getNode());
+        } catch (IOException e) {
+            e.printStackTrace();
+            //todo: handle findValue erro
+        }
+
+        /* target targetValue = org.gRPC.target.newBuilder()
+                .setNodeId()*/
+
+
+
+
 
     }
 

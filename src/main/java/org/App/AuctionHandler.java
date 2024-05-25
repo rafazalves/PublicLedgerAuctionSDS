@@ -23,4 +23,7 @@ public class AuctionHandler {
     public void storeBid(long timestamp){
         storageManager.put(BigInteger.valueOf(auction.getAuctionID()), BigInteger.valueOf(auction.getAuctionID()), timestamp);
     }
+
+    // fazer funçoes de prpagação
+    // quando cria leilao ou faz uma licitação mandar isso para os outros nodes da rede
 }

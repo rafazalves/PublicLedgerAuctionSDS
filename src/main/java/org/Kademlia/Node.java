@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 import org.Kademlia.RoutingTable.Bucket;
+import org.blockchain.Wallet;
 import org.bouncycastle.*;
 import org.bouncycastle.jcajce.provider.digest.SHA3;
 import org.Kademlia.utils.Utils;
@@ -28,6 +29,7 @@ public class Node {
         private PrivateKey privKey;
         private PublicKey pubKey;
         private int nonce;
+        private Wallet wallet;
 
     public Node(int nodePublicPort, int nodeIP) {
         this.nodePublicPort = nodePublicPort;
@@ -42,6 +44,21 @@ public class Node {
         }
 
     }
+
+    public Node(int nodePublicPort, int nodeIP, Wallet wallet) {
+        this.nodePublicPort = nodePublicPort;
+        this.nodeIP = nodeIP;
+        generateKeys();
+        generateTimestamp();
+        this.nodeId = generateId(this.pubKey);
+        try {
+            nonce = mineChallenge(nodeId);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        this.wallet = wallet;
+    }
+
 
     public void printNodeID_Hash(){
         StringBuilder texto = new StringBuilder();
@@ -149,6 +166,9 @@ public class Node {
         return nodeIP;
     }
 
+    public Wallet getWallet() {
+        return wallet;
+    }
 
     @Override
     public String toString() {

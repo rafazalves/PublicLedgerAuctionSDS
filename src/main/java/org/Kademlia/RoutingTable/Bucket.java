@@ -43,7 +43,7 @@ public class Bucket {
 
 
     public synchronized boolean addContactos(Contactos c) {
-        for (Contactos c1 : this.contactos) {
+        /*for (Contactos c1 : this.contactos) {
             if (c1.equals(c)) {
                 Contactos aux = this.removeDoContactos(c.getN());
                 aux.updateLastSeen();
@@ -56,8 +56,19 @@ public class Bucket {
                 contactos.remove(maisAntigo);
                 return this.contactos.add(c);
             }
+        }*/
+        if (this.contactos.contains(c)) {
+            Contactos aux = this.removeDoContactos(c.getN());
+            aux.updateLastSeen();
+            return this.contactos.add(aux);
+        }else if (this.contactos.size() < K_Nodes) { // se o bucket não estiver cheio
+            return this.contactos.add(c);
+
+        } else { // se o bucket estiver cheio
+            Contactos maisAntigo = contactos.get(0);
+            contactos.remove(maisAntigo);
+            return this.contactos.add(c);
         }
-        return false;
     }
 
     public synchronized boolean add(Node n){

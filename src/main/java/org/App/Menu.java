@@ -15,7 +15,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.io.*;
 import java.lang.reflect.Type;
-import java.security.PublicKey;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,10 +28,13 @@ public class Menu {
     
     public static Blockchain blockchain = new Blockchain(1, 3, null);
     public static TransactionPool transactionPool = new TransactionPool();
+    public static final Scanner scanner = new Scanner(System.in);
+    public static Map<Node, Auction> MyAuctions = new HashMap<Node, Auction>();
+    public static  Map<Node, Auction> SubAuctions = new HashMap<Node, Auction>();
+    public static clientManager clientManager = new clientManager();
 
     public static void main(String[] args) {
-        Map<Wallet, Auction> MyAuctions = new HashMap<Wallet, Auction>();
-        Map<Wallet, Auction> SubAuctions = new HashMap<Wallet, Auction>();
+
         Scanner stdin = new Scanner(System.in);
         if (args.length < 2) {
             System.out.println("Usage: java -jar <jarfile> <ip> <port>");
@@ -41,11 +43,133 @@ public class Menu {
         int ip = Integer.parseInt(args[0]);
         int port = Integer.parseInt(args[1]);
 
+        System.out.println("Command mode:");
+        System.out.println("1 - auction");
+        System.out.println("2 - client");
+        System.out.println("3 - server");
+        System.out.println("4 - help");
+        System.out.println("5 - quit");
+
+
+        int op = scanner.nextInt();
+
+        switch (op) {
+            case 1:
+                startServer(ip, port, scanner);
+                startAuction(ip, port);
+                break;
+
+            case 2:
+                startServer(ip, port, scanner);
+                startClient(ip, port, scanner);
+                break;
+
+            case 3:
+                help();
+                break;
+
+            case 4:
+                scanner.close();
+                return;
+
+            default:
+                System.out.println("Unknown command. Use 'help' for a list of available commands.");
+                break;
+        }
+    }
+
+    public static void help() {
+        System.out.println("auction > create auction\nclient > bid in auctions\nserver > create server");
+    }
+
+
+    public static void startAuction(int name, int port) {
+
+        loadUsersFromFile();
+        Random random = new Random();
+        Node userNode = new Node(port, name);
+        KadNode kadNode = new KadNode(userNode);
+
+        while(true) {
+            System.out.println("Opções");
+            System.out.println("1-Criar leilão");
+            System.out.println("2-Ver meus leilões");
+            System.out.println("3-Leilões a vencer");
+            System.out.println("4-Sair");
+
+            int op1 = scanner.nextInt();
+
+            switch (op1) {
+                case 1:
+                    System.out.println("Criar leilão");
+                    System.out.println("Insira o nome do leilão:");
+                    String name1 = scanner.next();
+                    System.out.println("Insira o preço inicial:");
+                    int price = getValidInt(scanner);
+                    System.out.println("Insira o preço máximo:");
+                    float maxPrice = getValidFloat(scanner);
+
+                    int id = 1;
+                    if (!auctions.isEmpty()) {
+                        Auction lastElement = auctions.get(auctions.size() - 1);
+                        id = lastElement.getAuctionID() + 1;
+                    }
+
+                    int randomNumber = random.nextInt(1000 - 100 + 1) + 100;
+                    Wallet wallet = new Wallet(randomNumber);
+                    Auction auction = new Auction(id, name1, userNode.getPubKey(), price, maxPrice, wallet);
+                    auctions.add(auction);
+                    MyAuctions.put(userNode, auction);
+
+                    Block block = new Block(blockchain.getLatestBlock().getId() + 1, blockchain.getLatestBlock().getHash(), new ArrayList<Transaction>());
+                    blockchain.addBlock(block);
+                    AuctionHandler auctionHandler = new AuctionHandler(auction, kadNode);
+                break;
+
+                case 2:
+                    System.out.println("Meus leilões");
+                    for (Auction a : MyAuctions.values()) {
+                        if(a.getAuctionStatus()==0){
+                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
+                        }else{
+                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Leilão acabado. Preço final: " + a.getAuctionCurrentPrice() + ") ");
+                        }
+                    }
+                break;
+
+                case 3:
+                    System.out.println("Leilões a Vencer");
+                    for (Auction a : auctions) {
+                        if (a.getAuctionCurrentWinner() == userNode.getPubKey()) {
+                            if(a.getAuctionStatus()==0){
+                                System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
+                            }else{
+                                System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Leilão acabado. Preço final: " + a.getAuctionCurrentPrice() + ") ");
+                            }
+                        }
+                    }
+                    break;
+
+                case 4:
+                    System.exit(0);
+                    break;
+
+                default:
+                    System.out.println("Opção inválida");
+                    break;
+            }
+        }
+    }
+
+
+    public static void startServer(int ip, int port, Scanner scn){
+        loadUsersFromFile();
+
         serverSetUp server = new serverSetUp();
+
         Node node = new Node(port, ip); // port, IP
         KadNode knode = new KadNode(node);
 
-        clientManager clientManager= new clientManager();
         knode.setClientManager(clientManager);
 
         new Thread(() -> {
@@ -58,71 +182,78 @@ public class Menu {
             }
         }).start();
 
-        System.out.println("Server started");
+        logger.info("Server started");
+
+    }
+
+    public static void startClient(int ip, int port, Scanner scn) {
+
         loadUsersFromFile();
-        Wallet userNode = new Wallet(100); // Usar Wallet em vez de usar o Node?
 
-        // cria node bootstrap cliente
 
-        new Thread(() -> {
-            try {
-                Node targetNode = new Node(50051, 123459);
-                KadNode targetKNode = new KadNode(targetNode);
+        Node userNode = new Node(port, ip);
+        KadNode knode = new KadNode(userNode);
+
+        System.out.println("Do you want to do Ping:");
+        System.out.println("1 - Sim");
+        System.out.println("2 - Não");
+
+
+        int op = scn.nextInt();
+
+
+        switch (op) {
+            case 1:
+                System.out.println("what is the ip?");
+                int targetIp = Menu.scanner.nextInt();
+                System.out.println("What is the port?");
+                int targetPort = Menu.scanner.nextInt();
+
+                Node targetNode = new Node(targetPort, targetIp);
+                KadNode targetKnode = new KadNode(targetNode);
 
                 // Fazer o ping
-                clientManager.doPing(knode, targetKNode);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+                clientManager.doPing(knode, targetKnode);
+                break;
 
-       while (true) {
-            System.out.println("Menu:");
-            System.out.println("1 - Criar leilão");
-            System.out.println("2 - Licitar");
-            System.out.println("3 - Ver leilões");
-            System.out.println("4 - Subscrever leilão");
-            System.out.println("5 - Leilões Subscritos");
-            System.out.println("6 - Leilões a Vencer");
-            System.out.println("7 - Meus leilões");
-            System.out.println("8 - Sair");
+            case 2:
+                System.out.println("vai a merda então");
+                break;
 
-            System.out.print("Escolha uma opção: ");
+            default:
+                System.out.println("Opção inválida");
+                break;
+        }
 
-            int op = stdin.nextInt();
+        while (true) {
+            System.out.println("Opção:");
+            System.out.println("1-Ver leilões");
+            System.out.println("2-Licitar");
+            System.out.println("3-Subscrever leilão");
+            System.out.println("4-Ver leilões subscritos");
+            System.out.println("5-Sair");
 
-            switch (op) {
+            int op1 = scn.nextInt();
+
+            switch (op1) {
                 case 1:
-                    System.out.println("Criar leilão");
-                    System.out.println("Insira o nome do leilão:");
-                    String name = stdin.next();
-                    System.out.println("Insira o preço inicial:");
-                    int price = getValidInt(stdin);
-                    System.out.println("Insira o preço máximo:");
-                    float maxPrice = getValidFloat(stdin);
-
-                    int id = 1;
-                    if (!auctions.isEmpty()) {
-                        Auction lastElement = auctions.get(auctions.size() - 1);
-                        id = lastElement.getAuctionID() + 1;
+                    System.out.println("Ver leilões");
+                    for (Auction a : auctions) {
+                        if (a.getAuctionStatus() == 0) {
+                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
+                        } else {
+                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Leilão acabado. Preço final: " + a.getAuctionCurrentPrice() + ") ");
+                        }
                     }
-
-                    Auction auction = new Auction(id, name, userNode, price, maxPrice);
-                    auctions.add(auction);
-                    MyAuctions.put(userNode, auction);
-
-                    Block block = new Block(blockchain.getLatestBlock().getId() + 1, blockchain.getLatestBlock().getHash(), new ArrayList<Transaction>());
-                    blockchain.addBlock(block);
-
-                    //AuctionHandler auctionHandler = new AuctionHandler(auction, node);
                     break;
+
                 case 2:
                     System.out.println("Licitar");
                     for (Auction a : auctions) {
                         System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
                     }
                     System.out.println("Insira o ID do leilão:");
-                    int auctionID = stdin.nextInt();
+                    int auctionID = Menu.scanner.nextInt();
                     Auction selectedAuction = null;
                     for (Auction a : auctions) {
                         if (a.getAuctionID() == auctionID) {
@@ -136,17 +267,17 @@ public class Menu {
                         System.out.println("Name: " + selectedAuction.getAuctionName());
                         System.out.println("Current Price: " + selectedAuction.getAuctionCurrentPrice());
                         System.out.println("Max Price: " + selectedAuction.getAuctionMaxPrice());
-                        if(selectedAuction.getAuctionStatus()==0){
+                        if (selectedAuction.getAuctionStatus() == 0) {
                             System.out.println("Status do Leilão: Em curso");
                             System.out.println("Insira o valor da licitação:");
-                            float bid = getValidFloat(stdin);
+                            float bid = getValidFloat(Menu.scanner);
 
                             // verificar se num licitado é maior que o atual e menor que maximo
-                            if(bid>selectedAuction.getAuctionCurrentPrice() && bid<selectedAuction.getAuctionMaxPrice()){
+                            if (bid > selectedAuction.getAuctionCurrentPrice() && bid < selectedAuction.getAuctionMaxPrice()) {
                                 Transaction transaction = new Transaction(selectedAuction.getAuctionOwner(), selectedAuction.getAuctionCurrentWinner(), selectedAuction.getAuctionCurrentPrice());
                                 transaction.generateSignature(selectedAuction.getOwnerWallet().getPrivateKey());
-                                Transaction transaction2 = new Transaction(userNode.getPublicKey(), selectedAuction.getAuctionOwner(), bid);
-                                transaction2.generateSignature(userNode.getPrivateKey());
+                                Transaction transaction2 = new Transaction(userNode.getPubKey(), selectedAuction.getAuctionOwner(), bid);
+                                transaction2.generateSignature(userNode.getPrivKey());
                                 Block selectedBlock = null;
                                 for (Block a : blockchain.getblockchainBlocks()) {
                                     if (a.getId() == selectedAuction.getAuctionID()) {
@@ -154,20 +285,20 @@ public class Menu {
                                         break;
                                     }
                                 }
-                                if(selectedBlock.addTransaction(transaction) && selectedBlock.addTransaction(transaction2)) {
+                                if (selectedBlock.addTransaction(transaction) && selectedBlock.addTransaction(transaction2)) {
                                     transactionPool.addTransaction(transaction);
                                     transactionPool.addTransaction(transaction2);
                                 }
-                                selectedAuction.setAuctionCurrentWinner(userNode.getPublicKey());
+                                selectedAuction.setAuctionCurrentWinner(userNode.getPubKey());
                                 selectedAuction.setAuctionCurrentPrice(bid);
-                            }else if(bid>selectedAuction.getAuctionMaxPrice()){
+                            } else if (bid > selectedAuction.getAuctionMaxPrice()) {
                                 System.out.println("Valor Licitado excede Max Price.");
                                 System.out.println("Leilão terminado com licitação de " + selectedAuction.getAuctionMaxPrice());
                                 selectedAuction.setAuctionCurrentPrice(selectedAuction.getAuctionMaxPrice());
                                 selectedAuction.setAuctionStatus(1);
-                                selectedAuction.setAuctionWinner(userNode.getPublicKey());
-                                Transaction transaction = new Transaction(userNode.getPublicKey(), selectedAuction.getAuctionOwner(),selectedAuction.getAuctionMaxPrice());
-                                transaction.generateSignature(userNode.getPrivateKey());
+                                selectedAuction.setAuctionWinner(userNode.getPubKey());
+                                Transaction transaction = new Transaction(userNode.getPubKey(), selectedAuction.getAuctionOwner(), selectedAuction.getAuctionMaxPrice());
+                                transaction.generateSignature(userNode.getPrivKey());
                                 Block selectedBlock = null;
                                 for (Block a : blockchain.getblockchainBlocks()) {
                                     if (a.getId() == selectedAuction.getAuctionID()) {
@@ -175,16 +306,16 @@ public class Menu {
                                         break;
                                     }
                                 }
-                                if(selectedBlock.addTransaction(transaction)) {
+                                if (selectedBlock.addTransaction(transaction)) {
                                     transactionPool.addTransaction(transaction);
                                 }
-                            }else if(bid==selectedAuction.getAuctionMaxPrice()){
+                            } else if (bid == selectedAuction.getAuctionMaxPrice()) {
                                 System.out.println("Leilão terminado com licitação de " + bid);
                                 selectedAuction.setAuctionCurrentPrice(bid);
                                 selectedAuction.setAuctionStatus(1);
-                                selectedAuction.setAuctionWinner(userNode.getPublicKey());
-                                Transaction transaction = new Transaction(userNode.getPublicKey(), selectedAuction.getAuctionOwner(), bid);
-                                transaction.generateSignature(userNode.getPrivateKey());
+                                selectedAuction.setAuctionWinner(userNode.getPubKey());
+                                Transaction transaction = new Transaction(userNode.getPubKey(), selectedAuction.getAuctionOwner(), bid);
+                                transaction.generateSignature(userNode.getPrivKey());
                                 Block selectedBlock = null;
                                 for (Block a : blockchain.getblockchainBlocks()) {
                                     if (a.getId() == selectedAuction.getAuctionID()) {
@@ -192,36 +323,27 @@ public class Menu {
                                         break;
                                     }
                                 }
-                                if(selectedBlock.addTransaction(transaction)) {
+                                if (selectedBlock.addTransaction(transaction)) {
                                     transactionPool.addTransaction(transaction);
                                 }
-                            }else{
+                            } else {
                                 System.out.println("Valor Licitado insuficiente.");
                             }
-                        }else{
+                        } else {
                             System.out.println("Status do Leilão: Fechado");
                         }
                     } else {
                         System.out.println("Auction with ID " + auctionID + " not found.");
                     }
                     break;
+
                 case 3:
-                    System.out.println("Ver leilões");
-                    for (Auction a : auctions) {
-                        if(a.getAuctionStatus()==0){
-                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
-                        }else{
-                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Leilão acabado. Preço final: " + a.getAuctionCurrentPrice() + ") ");
-                        }
-                    }
-                    break;
-                case 4:
                     System.out.println("Subscrever leilão");
                     for (Auction a : auctions) {
                         System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
                     }
                     System.out.println("Insira o ID do leilão que pretende subscrever:");
-                    int auct = stdin.nextInt();
+                    int auct = scanner.nextInt();
                     Auction subAuction = null;
                     for (Auction a : auctions) {
                         if (a.getAuctionID() == auct) {
@@ -235,50 +357,32 @@ public class Menu {
                         System.out.println("Auction with ID " + auct + " not found.");
                     }
                     break;
-                case 5:
-                    if (SubAuctions.isEmpty()){
+
+                case 4:
+                    if (SubAuctions.isEmpty()) {
                         System.out.println("Você não tem leilões subscritos.");
                         break;
                     }
 
                     System.out.println("Leilões Subscritos");
                     for (Auction a : SubAuctions.values()) {
-                        if(a.getAuctionStatus()==0){
+                        if (a.getAuctionStatus() == 0) {
                             System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
-                        }else{
+                        } else {
                             System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Leilão acabado. Preço final: " + a.getAuctionCurrentPrice() + ") ");
                         }
                     }
                     break;
-                case 6:
-                    System.out.println("Leilões a Vencer");
-                    for (Auction a : auctions) {
-                        if (a.getAuctionCurrentWinner() == userNode.getPublicKey()) {
-                            if(a.getAuctionStatus()==0){
-                                System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
-                            }else{
-                                System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Leilão acabado. Preço final: " + a.getAuctionCurrentPrice() + ") ");
-                            }
-                        }
-                    }
-                    break;
-                case 7:
-                    System.out.println("Meus leilões");
-                    for (Auction a : MyAuctions.values()) {
-                        if(a.getAuctionStatus()==0){
-                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Preço atual do leilão: " + a.getAuctionCurrentPrice() + ") ");
-                        }else{
-                            System.out.println(a.getAuctionID() + " - " + a.getAuctionName() + " (Leilão acabado. Preço final: " + a.getAuctionCurrentPrice() + ") ");
-                        }
-                    }
-                    break;
-                case 8:
+
+                case 5:
                     System.exit(0);
-                    break;
+                    return;
+
                 default:
                     System.out.println("Opção inválida");
                     break;
             }
+            System.out.println("-------------------------------");
         }
     }
 
@@ -313,9 +417,10 @@ public class Menu {
                 Auction auctionInfo = new Auction(
                         auctionDTO.auctionID,
                         auctionDTO.auctionName,
-                        ownerWallet,
+                        ownerWallet.getPublicKey(),
                         auctionDTO.auctionStartPrice,
-                        auctionDTO.auctionMaxPrice
+                        auctionDTO.auctionMaxPrice,
+                        ownerWallet
                 );
                 auctions.add(auctionInfo);
 

@@ -1,10 +1,9 @@
 package org.App;
 
+import org.Kademlia.Node;
 import org.blockchain.Wallet;
 
-import javax.swing.*;
 import java.security.PublicKey;
-import java.security.Timestamp;
 import java.util.Date;
 
 public class Auction {
@@ -37,10 +36,10 @@ public class Auction {
         this.auctionMaxPrice = auctionMaxPrice;
     }
 
-    public Auction(int auctionID, String auctionName, Wallet ownerWallet, int auctionStartPrice , float auctionMaxPrice){
+    public Auction(int auctionID, String auctionName, PublicKey ownerWallet, int auctionStartPrice , float auctionMaxPrice, Wallet ownerWallet1){
         this.auctionID = auctionID;
         this.auctionName = auctionName;
-        this.auctionOwner = ownerWallet.getPublicKey();
+        this.auctionOwner = ownerWallet;
         this.auctionMaxPrice = auctionMaxPrice;
         this.auctionStartDate = new Date().getTime();
         this.auctionStartPrice = auctionStartPrice;
@@ -52,7 +51,7 @@ public class Auction {
         Date currentDate = new Date(auctionStartDate);
         currentDate.setMonth(currentDate.getMonth() + 1);
         this.auctionEndDate = currentDate.getTime();
-        this.ownerWallet = ownerWallet;
+        this.ownerWallet = ownerWallet1;
     }
 
     public int getAuctionID() {
