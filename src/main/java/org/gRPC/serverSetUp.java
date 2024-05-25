@@ -2,6 +2,7 @@ package org.gRPC;
 
 import io.grpc.BindableService;
 import io.grpc.ServerBuilder;
+import org.Kademlia.KadNode;
 import org.Kademlia.Node;
 
 import java.io.IOException;
@@ -61,9 +62,10 @@ public class serverSetUp {
        final serverSetUp server = new serverSetUp();
        if(args.length == 2) {
            Node node = new Node(Integer.parseInt(args[0]), Integer.parseInt(args[1])); // port, IP
+           KadNode knode = new KadNode(node);
 
            clientManager clientManager= new clientManager();
-           node.setClientManager(clientManager);
+           knode.setClientManager(clientManager);
            try {
                server.start(node);
 
@@ -72,10 +74,11 @@ public class serverSetUp {
            }
        } else {
            Node node = new Node(80,12345);; // port, IP
+           KadNode knode = new KadNode(node);
            try {
 
                clientManager clientManager= new clientManager();
-               node.setClientManager(clientManager);
+               knode.setClientManager(clientManager);
 
                server.start(node);
            } catch (IOException e) {

@@ -1,6 +1,7 @@
 package org.App;
 
 import org.App.data.AuctionDTO;
+import org.Kademlia.KadNode;
 import org.Kademlia.Node;
 import org.blockchain.Block;
 import org.blockchain.Blockchain;
@@ -42,9 +43,10 @@ public class Menu {
 
         serverSetUp server = new serverSetUp();
         Node node = new Node(port, ip); // port, IP
+        KadNode knode = new KadNode(node);
 
         clientManager clientManager= new clientManager();
-        node.setClientManager(clientManager);
+        knode.setClientManager(clientManager);
 
         new Thread(() -> {
             try {

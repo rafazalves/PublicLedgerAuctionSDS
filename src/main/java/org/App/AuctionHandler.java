@@ -1,5 +1,5 @@
 package org.App;
-import org.Kademlia.Node;
+import org.Kademlia.KadNode;
 import org.Kademlia.Storage.StorageManager;
 import org.blockchain.Blockchain;
 
@@ -8,15 +8,15 @@ import java.util.Map;
 
 public class AuctionHandler {
     private Auction auction;
-    public Node node;
+    public KadNode node;
     private StorageManager storageManager;
-    private Map<Node, Auction> bids;
+    private Map<KadNode, Auction> bids;
 
-    public AuctionHandler(Auction auction, Node node){
+    public AuctionHandler(Auction auction, KadNode node){
         this.auction = auction;
         this.node = node;
         long timestamp = System.currentTimeMillis() / 1000L;
-        storageManager = new StorageManager();
+        storageManager = node.getStorageManager();
         storageManager.put(BigInteger.valueOf(auction.getAuctionID()), BigInteger.valueOf(auction.getAuctionID()), timestamp);
     }
 

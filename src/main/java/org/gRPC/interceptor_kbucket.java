@@ -75,7 +75,7 @@ public class interceptor_kbucket implements ServerInterceptor {
 
                 Context fork = Context.current().fork();
 
-                //todo
+                //todo: i see also cliente manager
                 //fork.run(() -> node.handleSeenNode(newNode));
 
                 super.onMessage(message);

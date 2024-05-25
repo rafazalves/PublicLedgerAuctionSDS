@@ -46,33 +46,27 @@ public class Bucket {
 
 
     public synchronized boolean addContactos(Contactos c) {
-        return false;
-        /*if (this.contactos.contains(c)) { // se o bucket já contém o contacto
-            var aux = this.removeFromContactos(c.getN());
+        if (this.contactos.contains(c)) { // se o bucket já contém o contacto
+            Contactos aux = this.removeDoContactos(c.getN());
             aux.updateLastSeen();
             return this.contactos.add(aux);
 
         } else if (this.contactos.size() < K_Nodes) { // se o bucket não estiver cheio
             return this.contactos.add(c);
+
         } else { // se o bucket estiver cheio
             Contactos maisAntigo = contactos.pollFirst();
-            // fazer ping ao contacto mais antigo e ver se é obtida resposta, se sim, discartar novo contacto e mover contacto mais antigo para o fim da lista
-            //dar update ao lastSeen
-            // se não for obtida resposta, remover contacto mais antigo e adicionar novo contacto
-            if (ping(maisAntigo.getN().getNodeIP())) {
-                var aux = this.removeFromContactos(c.getN());
-                aux.updateLastSeen();
-                return this.contactos.add(aux);
-            } else {
-                contactos.remove(maisAntigo);
-                return contactos.add(c);
-            }
+            contactos.remove(maisAntigo);
+            return this.contactos.add(c);
         }
-
-         */
     }
 
-
+    public synchronized boolean add(Node n){
+        return this.add(new Contactos(n));
+    }
+    public synchronized boolean add(Contactos c){
+        return this.contactos.add(c);
+    }
 
     public synchronized boolean addNode(Node n) {
         return this.addContactos(new Contactos(n));

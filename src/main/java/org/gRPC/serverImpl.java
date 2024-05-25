@@ -33,6 +33,8 @@ public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
 
     @Override
     public void ping(pingP request, StreamObserver<pingP> responseObserver){
+
+        logger.info("Got the ping request from client node = " + request.getNodeId());
         //enviar resposta para a requisiçao grpc
         responseObserver.onNext(request);
         responseObserver.onCompleted();

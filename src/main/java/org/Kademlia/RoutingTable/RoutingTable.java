@@ -7,7 +7,12 @@ import java.util.*;
 
 public class RoutingTable {
     private final Node Node;
-    private transient Bucket[] buckets;;
+
+    private transient Bucket[] buckets;
+
+    public Bucket getSpecificBucket(int index) {
+        return this.buckets[index];
+    }
 
     public RoutingTable(Node node) {
         this.Node = node;
@@ -26,9 +31,9 @@ public class RoutingTable {
         this.buckets[index].addContactos(c);
     }
 
-    private final int getBucketIndex(byte[] nid) {
+    public final int getBucketIndex(byte[] nid) {
         int Index = this.Node.nodeDistance(this.Node.getNodeId(), nid) - 1;
-        // If i use my own nodeID the index will return -1, this if handles that case.
+        // If I use my own nodeID the index will return -1, this if handles that case.
         if (Index < 0)
             Index = 0;
         else if (Index > Utils.ID_LENGTH - 1) {
@@ -82,6 +87,19 @@ public class RoutingTable {
             }
         }
         return nodes;
+    }
+
+    public synchronized final List<Node> ListNodesIndex(int index){
+        List<Node> nodes = new ArrayList<>();
+
+        for(Contactos c : buckets[index].getContactos() ){
+            nodes.add(c.getN());
+        }
+        return nodes;
+    }
+
+    public synchronized final void UpdateBucket(int index,Node n){
+        buckets[index].addNode(n);
     }
 
     //Adds a penalty to a node. This is used when a node fails to respond to a RPC.

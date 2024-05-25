@@ -8,12 +8,14 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
+import org.Kademlia.RoutingTable.Bucket;
 import org.bouncycastle.*;
 import org.bouncycastle.jcajce.provider.digest.SHA3;
 import org.Kademlia.utils.Utils;
 import org.gRPC.clientManager;
 
 import static org.Kademlia.proof.ProofOfWork.mineChallenge;
+import org.Kademlia.RoutingTable.RoutingTable;
 
 
 public class Node {
@@ -25,9 +27,7 @@ public class Node {
 
     private PrivateKey privKey;
     private PublicKey pubKey;
-    private final int nonce;
-
-    private clientManager clientManager;
+    private int nonce;
 
     public Node(int nodePublicPort, int nodeIP) {
         this.nodePublicPort = nodePublicPort;
@@ -41,14 +41,6 @@ public class Node {
             throw new RuntimeException(e);
         }
 
-    }
-
-    public org.gRPC.clientManager getClientManager() {
-        return clientManager;
-    }
-
-    public void setClientManager(org.gRPC.clientManager clientManager) {
-        this.clientManager = clientManager;
     }
 
     public void printNodeID_Hash(){
@@ -149,6 +141,10 @@ public class Node {
         return nonce;
     }
 
+    public void setNonce(int nonce) {
+        this.nonce = nonce;
+    }
+
     public int getNodeIP() {
         return nodeIP;
     }
@@ -167,4 +163,6 @@ public class Node {
                 "   nodeTimestamp = " + printTimeStamp + '\'' + "\n" +
                 '}';
     }
+
+
 }
