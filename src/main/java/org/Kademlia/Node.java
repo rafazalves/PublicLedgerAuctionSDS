@@ -19,15 +19,15 @@ import org.Kademlia.RoutingTable.RoutingTable;
 
 
 public class Node {
-    private final byte[] nodeId; //KEY
-    private final int nodePublicPort;
-    private final int nodeIP;
+        private final byte[] nodeId; //KEY
+        private final int nodePublicPort;
+        private final int nodeIP;
 
-    private long nodeTimestamp;
+        private long nodeTimestamp;
 
-    private PrivateKey privKey;
-    private PublicKey pubKey;
-    private int nonce;
+        private PrivateKey privKey;
+        private PublicKey pubKey;
+        private int nonce;
 
     public Node(int nodePublicPort, int nodeIP) {
         this.nodePublicPort = nodePublicPort;

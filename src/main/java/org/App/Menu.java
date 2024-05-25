@@ -64,6 +64,18 @@ public class Menu {
 
         // cria node bootstrap cliente
 
+        new Thread(() -> {
+            try {
+                Node targetNode = new Node(50051, 123459);
+                KadNode targetKNode = new KadNode(targetNode);
+
+                // Fazer o ping
+                clientManager.doPing(knode, targetKNode);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+
        while (true) {
             System.out.println("Menu:");
             System.out.println("1 - Criar leilão");

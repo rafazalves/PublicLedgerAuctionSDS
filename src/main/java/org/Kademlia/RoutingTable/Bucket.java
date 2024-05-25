@@ -3,17 +3,14 @@ package org.Kademlia.RoutingTable;
 import org.Kademlia.*;
 import org.Kademlia.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.TreeSet;
+import java.util.*;
 
 public class Bucket {
-    private TreeSet<Contactos> contactos;
+    private LinkedList<Contactos> contactos;
     private final int K_Nodes; // How many nodes each bucket can hold.
 
     public Bucket(int k) {
-        this.contactos = new TreeSet<>();
+        this.contactos = new LinkedList<>();
         this.K_Nodes = k;
     }
 
@@ -46,19 +43,21 @@ public class Bucket {
 
 
     public synchronized boolean addContactos(Contactos c) {
-        if (this.contactos.contains(c)) { // se o bucket já contém o contacto
-            Contactos aux = this.removeDoContactos(c.getN());
-            aux.updateLastSeen();
-            return this.contactos.add(aux);
+        for (Contactos c1 : this.contactos) {
+            if (c1.equals(c)) {
+                Contactos aux = this.removeDoContactos(c.getN());
+                aux.updateLastSeen();
+                return this.contactos.add(aux);
+            }else if (this.contactos.size() < K_Nodes) { // se o bucket não estiver cheio
+                return this.contactos.add(c);
 
-        } else if (this.contactos.size() < K_Nodes) { // se o bucket não estiver cheio
-            return this.contactos.add(c);
-
-        } else { // se o bucket estiver cheio
-            Contactos maisAntigo = contactos.pollFirst();
-            contactos.remove(maisAntigo);
-            return this.contactos.add(c);
+            } else { // se o bucket estiver cheio
+                Contactos maisAntigo = contactos.get(0);
+                contactos.remove(maisAntigo);
+                return this.contactos.add(c);
+            }
         }
+        return false;
     }
 
     public synchronized boolean add(Node n){

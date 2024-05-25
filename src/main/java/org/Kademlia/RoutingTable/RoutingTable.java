@@ -37,7 +37,7 @@ public class RoutingTable {
         if (Index < 0)
             Index = 0;
         else if (Index > Utils.ID_LENGTH - 1) {
-            Index = Utils.ID_LENGTH;
+            Index = Utils.ID_LENGTH-1;
         }
         return Index;
     }

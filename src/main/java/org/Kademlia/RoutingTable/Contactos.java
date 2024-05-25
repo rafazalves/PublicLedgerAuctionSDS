@@ -1,7 +1,12 @@
 package org.Kademlia.RoutingTable;
 import org.Kademlia.*;
 
-public class Contactos {
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.TreeSet;
+
+public class Contactos  {
     private final Node n;
     private long lastSeen;
     private int failedTries;
@@ -60,4 +65,8 @@ public class Contactos {
                 ", failedTries=" + failedTries +
                 '}';
     }
+
+
+
+
 }
