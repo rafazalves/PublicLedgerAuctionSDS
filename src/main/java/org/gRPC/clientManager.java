@@ -13,7 +13,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 import org.Kademlia.KadNode;
 import org.Kademlia.Storage.StorageValue;
 
@@ -22,6 +25,11 @@ public class clientManager {
     private static clientManager instance;
 
     private static final Logger logger = Logger.getLogger(serverSetUp.class.getName());
+    ManagedChannel channel = null;
+
+    ledgerServiceGrpc.ledgerServiceStub stub = null;
+
+
 
 
     public clientManager() {
@@ -32,46 +40,94 @@ public class clientManager {
         return instance;
     }
     private ManagedChannel generateConnection(Node n){
+
         return ManagedChannelBuilder
-                .forAddress("localhost", n.getNodePublicPort() )
+                .forAddress("127.0.0.1", n.getNodePublicPort() )
                 .usePlaintext()
                 .build();
     }
 
     public ledgerServiceGrpc.ledgerServiceStub newStub(Node n) throws IOException {
-        final ManagedChannel connection = generateConnection(n);
-        return ledgerServiceGrpc.newStub(connection);
+        channel = generateConnection(n);
+        return ledgerServiceGrpc.newStub(channel);
     }
 
     public ledgerServiceGrpc.ledgerServiceFutureStub newFutureStub(Node n) throws IOException {
-        final ManagedChannel connection = generateConnection(n);
-        return ledgerServiceGrpc.newFutureStub(connection);
+        channel = generateConnection(n);
+        return ledgerServiceGrpc.newFutureStub(channel);
     }
 
     public void registerNode(Node n) {
+
+        try {
+            stub = this.newStub(n);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
         NodeInfo nodeInfo = NodeInfo.newBuilder()
-                .setIp(n.getNodeIP())
+                .setNodeIP(n.getNodeIP())
                 .setPort(n.getNodePublicPort())
                 .build();
-        RegisterResponse response = registryStub.registerNode(nodeInfo);
-        if (response.getSuccess()) {
-            logger.info("Node registered successfully");
-        } else {
-            logger.severe("Node registration failed");
-        }
+
+       stub.registerNode(nodeInfo, new StreamObserver<RegisterResponse>() {
+            @Override
+            public void onNext(RegisterResponse registerResponse) {
+
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                logger.severe("Node registration failed");
+            }
+
+            @Override
+            public void onCompleted() {
+                logger.info("Node registered successfully");
+            }
+        });
     }
 
-    public List<Node> getNodes() {
-        Empty request = Empty.newBuilder().build();
-        NodeList nodeList = registryStub.getNodes(request);
-        return nodeList.getNodesList().stream()
-                .map(info -> new Node(info.getPort(), info.getIp()))
-                .collect(Collectors.toList());
+    public List<Node> getNodes(Node n) {
+        try {
+            stub = this.newStub(n);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        NodeInfo nodeInfo = NodeInfo.newBuilder()
+                .setNodeIP(n.getNodeIP())
+                .setPort(n.getNodePublicPort())
+                .build();
+
+        List<Node> listaNodef = new LinkedList<>();
+        stub.getNodes(nodeInfo, new StreamObserver<NodeList1>() {
+            List<Node> nodeList = new LinkedList<>();
+            @Override
+            public void onNext(NodeList1 nodeList1) {
+                for (NodeInfo info : nodeList1.getNodesList()) {
+                    Node node = new Node((int) info.getPort(), (int) info.getNodeIP());
+                    nodeList.add(node);
+                }
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                logger.info("No nodes");
+            }
+
+            @Override
+            public void onCompleted() {
+                logger.info("Acabou");
+                channel.shutdown();
+            }
+        });
+        return listaNodef;
     }
+
 
     public void doPing(KadNode n, KadNode n1)  {
         logger.info("Will try to ping server with nodeId: " + Arrays.toString(n.getNode().getNodeId()));
-        ledgerServiceGrpc.ledgerServiceStub stub = null;
         try {
             stub = this.newStub(n.getNode());
             stub.ping(pingP.newBuilder().setNodeId(ByteString.copyFrom(n.getNode().getNodeId())).build(),
@@ -116,7 +172,6 @@ public class clientManager {
     //store value tem que ter a timestamp atualizada
     public void doStore(KadNode n, KadNode n1, StorageValue storeValue){
         logger.info("Will try to Store with nodeId: " + Arrays.toString(n.getNode().getNodeId()));
-        ledgerServiceGrpc.ledgerServiceStub stub = null;
 
         try {
             stub = this.newStub(n.getNode());
@@ -168,7 +223,6 @@ public class clientManager {
 
     public void findNode(KadNode ourNode, Node destino ){
         logger.info("Trying to find Node");
-        ledgerServiceGrpc.ledgerServiceStub stub = null;
         try {
             stub = this.newStub(ourNode.getNode());
         } catch (IOException e) {
@@ -230,7 +284,6 @@ public class clientManager {
         BigInteger printnodeId = new BigInteger(1, node.getNode().getNodeId());
         logger.info("trying to Find the value for the node: " + printnodeId);
 
-        ledgerServiceGrpc.ledgerServiceStub stub = null;
 
         try {
             stub = this.newStub(node.getNode());
@@ -279,13 +332,6 @@ public class clientManager {
                         }
                     }
                 });
-
-
-
-
-
-
-
     }
 
     public static void main(String[] args){

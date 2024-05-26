@@ -36,17 +36,18 @@ public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
 
     @Override
     public void registerNode(NodeInfo request, StreamObserver<RegisterResponse> responseObserver) {
-        String key = request.getnodeIP() + ":" + request.getport();
+        String key = request.getNodeIP() + ":" + request.getPort();
         nodes.put(key, request);
         RegisterResponse response = RegisterResponse.newBuilder().setSuccess(true).build();
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
 
-    @Override
-    public void getNodes(Empty request, StreamObserver<NodeList> responseObserver) {
-        NodeList.Builder nodeListBuilder = NodeList.newBuilder();
-        nodeListBuilder.addAllNodes(new ArrayList<>(nodes.values()));
+
+    public void getNodes(NodeInfo request, StreamObserver<NodeList1> responseObserver) {
+        NodeList1.Builder nodeListBuilder = NodeList1.newBuilder()
+                .addAllNodes(new ArrayList<>(nodes.values()));
+
         responseObserver.onNext(nodeListBuilder.build());
         responseObserver.onCompleted();
     }

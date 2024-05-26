@@ -35,7 +35,7 @@ public class Menu {
     public static final Scanner scanner = new Scanner(System.in);
     public static Map<Node, Auction> MyAuctions = new HashMap<Node, Auction>();
     public static  Map<Node, Auction> SubAuctions = new HashMap<Node, Auction>();
-    public static clientManager clientManager = new clientManager();
+    public static clientManager clientManager;
     public static AuctionHandler auctionHandler = new AuctionHandler();
 
     public static void main(String[] args) {
@@ -51,9 +51,8 @@ public class Menu {
         System.out.println("Command mode:");
         System.out.println("1 - auction");
         System.out.println("2 - client");
-        System.out.println("3 - server");
-        System.out.println("4 - help");
-        System.out.println("5 - quit");
+        System.out.println("3 - help");
+        System.out.println("4 - quit");
 
 
         int op = scanner.nextInt();
@@ -95,10 +94,15 @@ public class Menu {
         Node userNode = new Node(port, name);
         KadNode kadNode = new KadNode(userNode);
 
-        List<Node> nodes = clientManager.getNodes();
+        List<Node> nodes = clientManager.getNodes(userNode);
         System.out.println("Discovered nodes: ");
         for (Node node : nodes) {
             System.out.println("Node IP: " + node.getNodeIP() + ", Port: " + node.getNodePublicPort());
+        }
+
+        for (Node n : nodes){
+            KadNode targetKnode = new KadNode(n);
+            clientManager.doPing(kadNode, targetKnode);
         }
 
         while(true) {
@@ -212,41 +216,17 @@ public class Menu {
         Node userNode = new Node(port, ip);
         KadNode knode = new KadNode(userNode);
 
-        List<Node> nodes = clientManager.getNodes();
+        clientManager = new clientManager();
+
+        List<Node> nodes = clientManager.getNodes(userNode);
         System.out.println("Discovered nodes: ");
         for (Node node : nodes) {
             System.out.println("Node IP: " + node.getNodeIP() + ", Port: " + node.getNodePublicPort());
         }
 
-        System.out.println("Do you want to do Ping:");
-        System.out.println("1 - Sim");
-        System.out.println("2 - Não");
-
-
-        int op = scn.nextInt();
-
-
-        switch (op) {
-            case 1:
-                System.out.println("what is the ip?");
-                int targetIp = Menu.scanner.nextInt();
-                System.out.println("What is the port?");
-                int targetPort = Menu.scanner.nextInt();
-
-                Node targetNode = new Node(targetPort, targetIp);
-                KadNode targetKnode = new KadNode(targetNode);
-
-                // Fazer o ping
-                clientManager.doPing(knode, targetKnode);
-                break;
-
-            case 2:
-                System.out.println("Continua");
-                break;
-
-            default:
-                System.out.println("Opção inválida");
-                break;
+        for (Node n : nodes){
+            KadNode targetKnode = new KadNode(n);
+            clientManager.doPing(knode, targetKnode);
         }
 
         while (true) {

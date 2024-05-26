@@ -47,7 +47,7 @@ message FValues{
 }
 
 message NodeInfo {
-  string nodeIP = 1;
+  int64 nodeIP = 1;
   int64 port = 2;
 }
 
@@ -55,9 +55,7 @@ message RegisterResponse {
   bool success = 1;
 }
 
-message Empty {}
-
-message NodeList {
+message NodeList1 {
   repeated NodeInfo nodes = 1;
 }
 
@@ -66,7 +64,7 @@ service ledgerService {
   rpc store(storeRequest) returns (storeResponse);
   rpc findNode(target) returns (stream FNodes);
   rpc findValue(target) returns (stream FValues);
-  rpc RegisterNode (NodeInfo) returns (RegisterResponse);
-  rpc GetNodes (Empty) returns (NodeList);
+  rpc registerNode (NodeInfo) returns (RegisterResponse);
+  rpc getNodes (NodeInfo) returns (NodeList1);
 }
 
