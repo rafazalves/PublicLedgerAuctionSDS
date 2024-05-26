@@ -1,6 +1,7 @@
 package org.gRPC;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.Empty;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
@@ -11,6 +12,7 @@ import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 import org.Kademlia.KadNode;
 import org.Kademlia.Storage.StorageValue;
@@ -44,6 +46,27 @@ public class clientManager {
     public ledgerServiceGrpc.ledgerServiceFutureStub newFutureStub(Node n) throws IOException {
         final ManagedChannel connection = generateConnection(n);
         return ledgerServiceGrpc.newFutureStub(connection);
+    }
+
+    public void registerNode(Node n) {
+        NodeInfo nodeInfo = NodeInfo.newBuilder()
+                .setIp(n.getNodeIP())
+                .setPort(n.getNodePublicPort())
+                .build();
+        RegisterResponse response = registryStub.registerNode(nodeInfo);
+        if (response.getSuccess()) {
+            logger.info("Node registered successfully");
+        } else {
+            logger.severe("Node registration failed");
+        }
+    }
+
+    public List<Node> getNodes() {
+        Empty request = Empty.newBuilder().build();
+        NodeList nodeList = registryStub.getNodes(request);
+        return nodeList.getNodesList().stream()
+                .map(info -> new Node(info.getPort(), info.getIp()))
+                .collect(Collectors.toList());
     }
 
     public void doPing(KadNode n, KadNode n1)  {

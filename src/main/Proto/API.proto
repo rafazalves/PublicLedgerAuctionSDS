@@ -46,10 +46,27 @@ message FValues{
   int64 timestamp = 6;
 }
 
+message NodeInfo {
+  string nodeIP = 1;
+  int64 port = 2;
+}
+
+message RegisterResponse {
+  bool success = 1;
+}
+
+message Empty {}
+
+message NodeList {
+  repeated NodeInfo nodes = 1;
+}
+
 service ledgerService {
   rpc ping(pingP) returns (pingP);
   rpc store(storeRequest) returns (storeResponse);
   rpc findNode(target) returns (stream FNodes);
   rpc findValue(target) returns (stream FValues);
+  rpc RegisterNode (NodeInfo) returns (RegisterResponse);
+  rpc GetNodes (Empty) returns (NodeList);
 }
 

@@ -1,19 +1,21 @@
 package org.gRPC;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
 import org.Kademlia.Node;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import org.Kademlia.RoutingTable.RoutingTable;
 import org.Kademlia.Storage.StorageValue;
 import org.Kademlia.Storage.StorageManager;
 import org.Kademlia.utils.Utils;
 import org.Kademlia.Node;
-
+import org.w3c.dom.NodeList;
 
 
 public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
@@ -22,6 +24,7 @@ public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
 
     private final  RoutingTable routingTable;
     private final  StorageManager storageManager;
+    private final ConcurrentHashMap<String, NodeInfo> nodes = new ConcurrentHashMap<>();
     public serverImpl(Logger logger, Node node) {
         this.logger = logger;
         this.node = node;
@@ -29,6 +32,23 @@ public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
         routingTable.add(node);
         storageManager = new StorageManager();
 
+    }
+
+    @Override
+    public void registerNode(NodeInfo request, StreamObserver<RegisterResponse> responseObserver) {
+        String key = request.getnodeIP() + ":" + request.getport();
+        nodes.put(key, request);
+        RegisterResponse response = RegisterResponse.newBuilder().setSuccess(true).build();
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getNodes(Empty request, StreamObserver<NodeList> responseObserver) {
+        NodeList.Builder nodeListBuilder = NodeList.newBuilder();
+        nodeListBuilder.addAllNodes(new ArrayList<>(nodes.values()));
+        responseObserver.onNext(nodeListBuilder.build());
+        responseObserver.onCompleted();
     }
 
     @Override

@@ -95,6 +95,12 @@ public class Menu {
         Node userNode = new Node(port, name);
         KadNode kadNode = new KadNode(userNode);
 
+        List<Node> nodes = clientManager.getNodes();
+        System.out.println("Discovered nodes: ");
+        for (Node node : nodes) {
+            System.out.println("Node IP: " + node.getNodeIP() + ", Port: " + node.getNodePublicPort());
+        }
+
         while(true) {
             System.out.println("Opções");
             System.out.println("1-Criar leilão");
@@ -133,7 +139,7 @@ public class Menu {
                     auctionHandler.storeBid(timestamp, auction.getAuctionID(), kadNode );
 
                     StorageValue SV = new StorageValue(BigInteger.valueOf(auction.getAuctionID()), timestamp);
-
+                    // fazer um for para os List<Node> nodes = clientManager.getNodes(); se ficar a funcionar e assim manda para os outros nodes
                     clientManager.doStore(kadNode,kadNode, SV );
                 break;
 
@@ -182,6 +188,7 @@ public class Menu {
         KadNode knode = new KadNode(node);
 
         knode.setClientManager(clientManager);
+        clientManager.registerNode(node);
 
         new Thread(() -> {
             try {
@@ -204,6 +211,12 @@ public class Menu {
 
         Node userNode = new Node(port, ip);
         KadNode knode = new KadNode(userNode);
+
+        List<Node> nodes = clientManager.getNodes();
+        System.out.println("Discovered nodes: ");
+        for (Node node : nodes) {
+            System.out.println("Node IP: " + node.getNodeIP() + ", Port: " + node.getNodePublicPort());
+        }
 
         System.out.println("Do you want to do Ping:");
         System.out.println("1 - Sim");
@@ -228,7 +241,7 @@ public class Menu {
                 break;
 
             case 2:
-                System.out.println("vai a merda então");
+                System.out.println("Continua");
                 break;
 
             default:
