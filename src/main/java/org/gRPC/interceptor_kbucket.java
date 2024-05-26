@@ -1,6 +1,7 @@
 package org.gRPC;
 
 import io.grpc.*;
+import org.Kademlia.KadNode;
 import org.Kademlia.Node;
 import org.checkerframework.checker.units.qual.N;
 
@@ -8,6 +9,7 @@ import java.net.SocketAddress;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.security.NoSuchAlgorithmException;
 
 
 public class interceptor_kbucket implements ServerInterceptor {
@@ -72,11 +74,17 @@ public class interceptor_kbucket implements ServerInterceptor {
                 }
 
                 Node newNode = new Node(port, clientNodeIp);
+                KadNode knode = new KadNode(newNode);
 
                 Context fork = Context.current().fork();
 
-                //todo: i see also cliente manager
-                //fork.run(() -> node.handleSeenNode(newNode));
+                fork.run(() -> {
+                    try {
+                        knode.handleSeenNode(newNode);
+                    } catch (NoSuchAlgorithmException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
 
                 super.onMessage(message);
             }
