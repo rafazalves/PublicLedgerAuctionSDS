@@ -3,6 +3,8 @@ package org.App;
 import org.App.data.AuctionDTO;
 import org.Kademlia.KadNode;
 import org.Kademlia.Node;
+import org.Kademlia.Storage.StorageManager;
+import org.Kademlia.Storage.StorageValue;
 import org.blockchain.Block;
 import org.blockchain.Blockchain;
 import org.blockchain.Wallet;
@@ -127,8 +129,12 @@ public class Menu {
                     Block block = new Block(blockchain.getLatestBlock().getId() + 1, blockchain.getLatestBlock().getHash(), new ArrayList<Transaction>());
                     blockchain.addBlock(block);
                     auctionHandler = new AuctionHandler(auction, kadNode);
-                    auctionHandler.storeBid(Instant.now().getEpochSecond());
-                    clientManager.doStore(kadNode,kadNode, auctionHandler.getStorageManager().getValue(BigInteger.valueOf(auction.getAuctionID())));
+                    long timestamp = Instant.now().getEpochSecond();
+                    auctionHandler.storeBid(timestamp, auction.getAuctionID(), kadNode );
+
+                    StorageValue SV = new StorageValue(BigInteger.valueOf(auction.getAuctionID()), timestamp);
+
+                    clientManager.doStore(kadNode,kadNode, SV );
                 break;
 
                 case 2:
@@ -297,8 +303,11 @@ public class Menu {
                                 selectedAuction.setAuctionCurrentWinner(userNode.getPubKey());
                                 selectedAuction.setAuctionCurrentPrice(bid);
 
-                                auctionHandler.storeBid(Instant.now().getEpochSecond());
-                                clientManager.doStore(knode,knode, auctionHandler.getStorageManager().getValue(BigInteger.valueOf(selectedAuction.getAuctionID())));
+                                long timestamp = Instant.now().getEpochSecond();
+                                auctionHandler.storeBid(timestamp, selectedAuction.getAuctionID(), knode);
+
+                                StorageValue SV = new StorageValue(BigInteger.valueOf(selectedAuction.getAuctionID()), timestamp);
+                                clientManager.doStore(knode,knode, SV);
 
                             } else if (bid > selectedAuction.getAuctionMaxPrice()) {
                                 System.out.println("Valor Licitado excede Max Price.");
@@ -318,8 +327,11 @@ public class Menu {
                                 if (selectedBlock.addTransaction(transaction)) {
                                     transactionPool.addTransaction(transaction);
                                 }
-                                auctionHandler.storeBid(Instant.now().getEpochSecond());
-                                clientManager.doStore(knode,knode, auctionHandler.getStorageManager().getValue(BigInteger.valueOf(selectedAuction.getAuctionID())));
+                                long timestamp = Instant.now().getEpochSecond();
+                                auctionHandler.storeBid(timestamp, selectedAuction.getAuctionID(), knode);
+
+                                StorageValue SV = new StorageValue(BigInteger.valueOf(selectedAuction.getAuctionID()), timestamp);
+                                clientManager.doStore(knode,knode, SV);
                             } else if (bid == selectedAuction.getAuctionMaxPrice()) {
                                 System.out.println("Leilão terminado com licitação de " + bid);
                                 selectedAuction.setAuctionCurrentPrice(bid);
@@ -337,8 +349,10 @@ public class Menu {
                                 if (selectedBlock.addTransaction(transaction)) {
                                     transactionPool.addTransaction(transaction);
                                 }
-                                auctionHandler.storeBid(Instant.now().getEpochSecond());
-                                clientManager.doStore(knode,knode, auctionHandler.getStorageManager().getValue(BigInteger.valueOf(selectedAuction.getAuctionID())));
+                                long timestamp = Instant.now().getEpochSecond();
+                                auctionHandler.storeBid(timestamp, selectedAuction.getAuctionID(), knode);
+                                StorageValue SV = new StorageValue(BigInteger.valueOf(selectedAuction.getAuctionID()), timestamp);
+                                clientManager.doStore(knode,knode, SV);
                             } else {
                                 System.out.println("Valor Licitado insuficiente.");
                             }

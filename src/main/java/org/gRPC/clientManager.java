@@ -213,11 +213,51 @@ public class clientManager {
             stub = this.newStub(node.getNode());
         } catch (IOException e) {
             e.printStackTrace();
-            //todo: handle findValue erro
         }
 
-        /* target targetValue = org.gRPC.target.newBuilder()
-                .setNodeId()*/
+         target targetValue = org.gRPC.target.newBuilder()
+                .setNodeId(ByteString.copyFrom(node.getNode().getNodeId()))
+                 .setNodePublicPort(node.getNode().getNodePublicPort())
+                 .setNodeIP(node.getNode().getNodeIP())
+                 .build();
+
+        LinkedList<Node> ValueList = new LinkedList<>();
+
+        stub.findValue(targetValue,
+                new StreamObserver<FValues>() {
+                    @Override
+                    public void onNext(FValues fValues) {
+                        ByteString nodeId = fValues.getNodeId();
+                        int nodeIp = Integer.parseInt(fValues.getNodeIp());
+                        int port = Math.toIntExact(fValues.getPort());
+                        long timestamp = fValues.getTimestamp();
+
+                        Node nn = new Node(port, nodeIp);
+
+                        ValueList.add(nn);
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        logger.info("Erro em Find Value");
+                        try {
+                            node.printErrorHandle(destinoNode.getNode());
+                        } catch (NoSuchAlgorithmException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        if (ValueList.isEmpty()){
+                            logger.info("Nao encontrou nada");
+                        }else {
+                            logger.info("nodes encontrados");
+                        }
+                    }
+                });
+
+
 
 
 
