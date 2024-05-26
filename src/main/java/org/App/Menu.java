@@ -285,20 +285,35 @@ public class Menu {
                             auctionHandler = new AuctionHandler(selectedAuction,knode);
                             // verificar se num licitado é maior que o atual e menor que maximo
                             if (bid > selectedAuction.getAuctionCurrentPrice() && bid < selectedAuction.getAuctionMaxPrice()) {
-                                Transaction transaction = new Transaction(selectedAuction.getAuctionOwner(), selectedAuction.getAuctionCurrentWinner(), selectedAuction.getAuctionCurrentPrice());
-                                transaction.generateSignature(selectedAuction.getOwnerWallet().getPrivateKey());
-                                Transaction transaction2 = new Transaction(userNode.getPubKey(), selectedAuction.getAuctionOwner(), bid);
-                                transaction2.generateSignature(userNode.getPrivKey());
-                                Block selectedBlock = null;
-                                for (Block a : blockchain.getblockchainBlocks()) {
-                                    if (a.getId() == selectedAuction.getAuctionID()) {
-                                        selectedBlock = a;
-                                        break;
+                                if(selectedAuction.getAuctionCurrentWinner() != null){
+                                    Transaction transaction = new Transaction(selectedAuction.getAuctionOwner(), selectedAuction.getAuctionCurrentWinner(), selectedAuction.getAuctionCurrentPrice());
+                                    transaction.generateSignature(selectedAuction.getOwnerWallet().getPrivateKey());
+                                    Transaction transaction2 = new Transaction(userNode.getPubKey(), selectedAuction.getAuctionOwner(), bid);
+                                    transaction2.generateSignature(userNode.getPrivKey());
+                                    Block selectedBlock = null;
+                                    for (Block a : blockchain.getblockchainBlocks()) {
+                                        if (a.getId() == selectedAuction.getAuctionID()) {
+                                            selectedBlock = a;
+                                            break;
+                                        }
                                     }
-                                }
-                                if (selectedBlock.addTransaction(transaction) && selectedBlock.addTransaction(transaction2)) {
-                                    transactionPool.addTransaction(transaction);
-                                    transactionPool.addTransaction(transaction2);
+                                    if (selectedBlock.addTransaction(transaction) && selectedBlock.addTransaction(transaction2)) {
+                                        transactionPool.addTransaction(transaction);
+                                        transactionPool.addTransaction(transaction2);
+                                    }
+                                }else{
+                                    Transaction transaction = new Transaction(userNode.getPubKey(), selectedAuction.getAuctionOwner(), bid);
+                                    transaction.generateSignature(userNode.getPrivKey());
+                                    Block selectedBlock = null;
+                                    for (Block a : blockchain.getblockchainBlocks()) {
+                                        if (a.getId() == selectedAuction.getAuctionID()) {
+                                            selectedBlock = a;
+                                            break;
+                                        }
+                                    }
+                                    if (selectedBlock.addTransaction(transaction)) {
+                                        transactionPool.addTransaction(transaction);
+                                    }
                                 }
                                 selectedAuction.setAuctionCurrentWinner(userNode.getPubKey());
                                 selectedAuction.setAuctionCurrentPrice(bid);
