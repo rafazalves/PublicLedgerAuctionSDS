@@ -20,13 +20,13 @@ public class interceptor_kbucket implements ServerInterceptor {
     }
 
     // Extracts the client IP address as an integer
-    public static int extractClientAddressAsInt(SocketAddress remoteAddr) {
+    public static InetAddress extractClientAddressAsInt(SocketAddress remoteAddr) {
         if (remoteAddr instanceof InetSocketAddress) {
             InetSocketAddress inetSocketAddress = (InetSocketAddress) remoteAddr;
             InetAddress inetAddress = inetSocketAddress.getAddress();
-            return ipToInt(inetAddress);
+            return (inetAddress);
         }
-        return -1; // or throw an exception, or handle it as you see fit
+        return null;
     }
 
     // Converts IP address to its integer representation
@@ -50,7 +50,7 @@ public class interceptor_kbucket implements ServerInterceptor {
                                                                  ServerCallHandler<ReqT, RespT> next) {
 
         SocketAddress clientAddress = call.getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR);
-        int clientNodeIp = extractClientAddressAsInt(clientAddress);
+        InetAddress clientNodeIp = extractClientAddressAsInt(clientAddress);
 
         return new ForwardingServerCallListener.SimpleForwardingServerCallListener<ReqT>(next.startCall(call, headers)){
             @Override

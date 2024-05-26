@@ -9,11 +9,15 @@ import org.Kademlia.Node;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -29,26 +33,39 @@ public class clientManager {
 
     ledgerServiceGrpc.ledgerServiceStub stub = null;
 
+    public clientManager(Node n) throws IOException {
+        assert n != null;
 
+        int port = n.getNodePublicPort();
+        InetAddress nodeIP = n.getNodeIP();
+        String nodeIpString = nodeIP.getHostAddress();
 
+        this.channel = ManagedChannelBuilder
+                .forAddress(nodeIpString, port)
+                .usePlaintext()
+                .idleTimeout(20, TimeUnit.MINUTES) // Aumentar o tempo limite de conexão
+                .build();
+
+        this.stub = newStub(n);
+
+        int i = 0;
+    }
 
     public clientManager() {
         instance = this;
     }
 
-    public static clientManager getInstance() {
-        return instance;
-    }
     private ManagedChannel generateConnection(Node n){
 
         return ManagedChannelBuilder
                 .forAddress("127.0.0.1", n.getNodePublicPort() )
                 .usePlaintext()
+                .idleTimeout(200, TimeUnit.MINUTES) // Aumentar o tempo limite de conexão
                 .build();
     }
 
     public ledgerServiceGrpc.ledgerServiceStub newStub(Node n) throws IOException {
-        channel = generateConnection(n);
+        //channel = generateConnection(n);
         return ledgerServiceGrpc.newStub(channel);
     }
 
@@ -59,22 +76,26 @@ public class clientManager {
 
     public void registerNode(Node n) {
 
+        /*
         try {
             stub = this.newStub(n);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
+         */
+
 
         NodeInfo nodeInfo = NodeInfo.newBuilder()
-                .setNodeIP(n.getNodeIP())
+                //.setNodeIP(ByteString.copyFrom(n.getNodeIP().getAddress()))
+                .setNodeIP(inetAddressToByteString(n.getNodeIP()))
                 .setPort(n.getNodePublicPort())
                 .build();
 
        stub.registerNode(nodeInfo, new StreamObserver<RegisterResponse>() {
             @Override
             public void onNext(RegisterResponse registerResponse) {
-
+                logger.info("register Node on next test");
             }
 
             @Override
@@ -90,39 +111,48 @@ public class clientManager {
     }
 
     public List<Node> getNodes(Node n) {
-        try {
+       /* try {
             stub = this.newStub(n);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        */
         NodeInfo nodeInfo = NodeInfo.newBuilder()
-                .setNodeIP(n.getNodeIP())
+                .setNodeIP(ByteString.copyFrom(n.getNodeIP().getAddress()))
                 .setPort(n.getNodePublicPort())
                 .build();
 
-        List<Node> listaNodef = new LinkedList<>();
+        List<Node> nodeList = new LinkedList<>();
         stub.getNodes(nodeInfo, new StreamObserver<NodeList1>() {
-            List<Node> nodeList = new LinkedList<>();
+
             @Override
             public void onNext(NodeList1 nodeList1) {
                 for (NodeInfo info : nodeList1.getNodesList()) {
-                    Node node = new Node((int) info.getPort(), (int) info.getNodeIP());
+                    Node node = null;
+
+                    try {
+                        node = new Node((int) info.getPort(),
+                                InetAddress.getByAddress(info.getNodeIP().toByteArray()));
+                    } catch (UnknownHostException e) {
+                        throw new RuntimeException(e);
+                    }
                     nodeList.add(node);
                 }
             }
 
             @Override
             public void onError(Throwable throwable) {
-                logger.info("No nodes");
+                logger.severe("Failed to get nodes: " + throwable.getMessage());
             }
 
             @Override
             public void onCompleted() {
-                logger.info("Acabou");
+                logger.info("Node retrieval completed");
                 channel.shutdown();
             }
         });
-        return listaNodef;
+        return nodeList;
     }
 
 
@@ -155,6 +185,7 @@ public class clientManager {
                     @Override
                     public void onCompleted() {
                         logger.info("ping Completed");
+                        channel.shutdown();
 
                     }
                 }
@@ -221,6 +252,11 @@ public class clientManager {
                 });
     }
 
+    public static ByteString inetAddressToByteString(InetAddress inetAddress) {
+        byte[] addressBytes = inetAddress.getAddress();
+        return ByteString.copyFrom(addressBytes);
+    }
+
     public void findNode(KadNode ourNode, Node destino ){
         logger.info("Trying to find Node");
         try {
@@ -237,7 +273,7 @@ public class clientManager {
         target targetNode = target.newBuilder()
                 .setNodeId(ByteString.copyFrom(destino.getNodeId()))
                 .setNodePublicPort(destino.getNodePublicPort())
-                .setNodeIP(destino.getNodeIP())
+                .setNodeIP(inetAddressToByteString(destino.getNodeIP()))
                 .build();
 
         LinkedList<Node> nodeList = new LinkedList<>();
@@ -248,7 +284,12 @@ public class clientManager {
                     @Override
                     public void onNext(FNodes fNodes) {
                         ByteString nodeId = fNodes.getNodeId();
-                        int nodeIp = Integer.parseInt(fNodes.getNodeIp());
+                        InetAddress nodeIp = null;
+                        try {
+                            nodeIp = InetAddress.getByName(fNodes.getNodeIp());
+                        } catch (UnknownHostException e) {
+                            throw new RuntimeException(e);
+                        }
                         int port = Math.toIntExact(fNodes.getPort());
                         long timestamp = fNodes.getTimestamp();
 
@@ -294,7 +335,7 @@ public class clientManager {
          target targetValue = org.gRPC.target.newBuilder()
                 .setNodeId(ByteString.copyFrom(node.getNode().getNodeId()))
                  .setNodePublicPort(node.getNode().getNodePublicPort())
-                 .setNodeIP(node.getNode().getNodeIP())
+                 .setNodeIP(inetAddressToByteString( node.getNode().getNodeIP()))
                  .build();
 
         LinkedList<Node> ValueList = new LinkedList<>();
@@ -304,7 +345,12 @@ public class clientManager {
                     @Override
                     public void onNext(FValues fValues) {
                         ByteString nodeId = fValues.getNodeId();
-                        int nodeIp = Integer.parseInt(fValues.getNodeIp());
+                        InetAddress nodeIp = null;
+                        try {
+                            nodeIp = InetAddress.getByName(fValues.getNodeIp());
+                        } catch (UnknownHostException e) {
+                            throw new RuntimeException(e);
+                        }
                         int port = Math.toIntExact(fValues.getPort());
                         long timestamp = fValues.getTimestamp();
 

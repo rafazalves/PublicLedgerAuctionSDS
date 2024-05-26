@@ -8,6 +8,8 @@ message pingP {
   int64 nodeIP = 1;
   int64 nodePublicPort = 2;
   bytes nodeId = 3;
+  string message =4;
+
 }
 
 message storeRequest {
@@ -26,7 +28,7 @@ message storeResponse {
 message target{
   bytes nodeId = 1;
   int64 nodePublicPort = 2;
-  int64 nodeIP = 3;
+  bytes nodeIP = 3;
 }
 
 message FNodes{
@@ -47,7 +49,7 @@ message FValues{
 }
 
 message NodeInfo {
-  int64 nodeIP = 1;
+  bytes nodeIP = 1;
   int64 port = 2;
 }
 

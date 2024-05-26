@@ -6,6 +6,8 @@ import org.Kademlia.KadNode;
 import org.Kademlia.Node;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,7 +29,7 @@ public class serverSetUp {
        server = ServerBuilder
                .forPort(port)
                .intercept(new interceptor_kbucket(node))
-               .addService((BindableService) serverImplInst)
+               .addService( serverImplInst)
                .build()
                .start();
 
@@ -61,7 +63,12 @@ public class serverSetUp {
    public static void main(String[] args){
        final serverSetUp server = new serverSetUp();
        if(args.length == 2) {
-           Node node = new Node(Integer.parseInt(args[0]), Integer.parseInt(args[1])); // port, IP
+           Node node = null; // port, IP
+           try {
+               node = new Node(Integer.parseInt(args[1]), InetAddress.getByName(args[0]));
+           } catch (UnknownHostException e) {
+               throw new RuntimeException(e);
+           }
            KadNode knode = new KadNode(node);
 
            clientManager clientManager= new clientManager();
@@ -73,7 +80,12 @@ public class serverSetUp {
                throw new RuntimeException(e);
            }
        } else {
-           Node node = new Node(80,12345);; // port, IP
+           Node node = null; // port, IP
+           try {
+               node = new Node(80, InetAddress.getLocalHost());
+           } catch (UnknownHostException e) {
+               throw new RuntimeException(e);
+           }
            KadNode knode = new KadNode(node);
            try {
 

@@ -18,6 +18,8 @@ import com.google.gson.reflect.TypeToken;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
@@ -39,13 +41,28 @@ public class Menu {
     public static AuctionHandler auctionHandler = new AuctionHandler();
 
     public static void main(String[] args) {
+        InetAddress bootstrapIp = null;
+        int bootstrapPort = 0;
+
 
         Scanner stdin = new Scanner(System.in);
         if (args.length < 2) {
             System.out.println("Usage: java -jar <jarfile> <ip> <port>");
             System.exit(1);
+        } else if (args.length > 3){
+            try {
+                 bootstrapIp = InetAddress.getByName(args[2]);
+            } catch (UnknownHostException e) {
+                throw new RuntimeException(e);
+            }
+             bootstrapPort = Integer.parseInt(args[3]);
         }
-        int ip = Integer.parseInt(args[0]);
+        InetAddress ip = null;
+        try {
+            ip = InetAddress.getByName(args[0]);
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
         int port = Integer.parseInt(args[1]);
 
         System.out.println("Command mode:");
@@ -59,13 +76,13 @@ public class Menu {
 
         switch (op) {
             case 1:
-                startServer(ip, port, scanner);
-                startAuction(ip, port);
+                startServer(ip, port, scanner, bootstrapIp, bootstrapPort);
+                startAuction(ip, port, bootstrapIp, bootstrapPort);
                 break;
 
             case 2:
-                startServer(ip, port, scanner);
-                startClient(ip, port, scanner);
+                startServer(ip, port, scanner, bootstrapIp, bootstrapPort);
+                startClient(ip, port, scanner, bootstrapIp, bootstrapPort);
                 break;
 
             case 3:
@@ -87,11 +104,18 @@ public class Menu {
     }
 
 
-    public static void startAuction(int name, int port) {
+    public static void startAuction(InetAddress name, int port, InetAddress bootstrapIp, int bootstrapPort) {
 
         loadUsersFromFile();
         Random random = new Random();
-        Node userNode = new Node(port, name);
+        Node userNode;
+
+        if(bootstrapPort == 0 && bootstrapIp == null){
+            userNode = new Node(port, name);
+        } else {
+            userNode = new Node(port, name, bootstrapPort, bootstrapIp);
+        }
+
         KadNode kadNode = new KadNode(userNode);
 
         List<Node> nodes = clientManager.getNodes(userNode);
@@ -183,16 +207,21 @@ public class Menu {
     }
 
 
-    public static void startServer(int ip, int port, Scanner scn){
+    public static void startServer(InetAddress ip, int port, Scanner scn, InetAddress bootstrapIp, int bootstrapPort){
         loadUsersFromFile();
 
         serverSetUp server = new serverSetUp();
+        Node node;
 
-        Node node = new Node(port, ip); // port, IP
+        if(bootstrapPort == 0 && bootstrapIp == null){
+            node = new Node(port, ip);
+        } else {
+            node = new Node(port, ip, bootstrapPort, bootstrapIp);
+        }
+         // port, IP
         KadNode knode = new KadNode(node);
 
-        knode.setClientManager(clientManager);
-        clientManager.registerNode(node);
+
 
         new Thread(() -> {
             try {
@@ -208,17 +237,28 @@ public class Menu {
 
     }
 
-    public static void startClient(int ip, int port, Scanner scn) {
+    public static void startClient(InetAddress ip, int port, Scanner scn, InetAddress bootstrapIp, int bootstrapPort) {
 
         loadUsersFromFile();
 
+        Node userNode;
 
-        Node userNode = new Node(port, ip);
+        if(bootstrapPort == 0 && bootstrapIp == null){
+            userNode = new Node(port, ip);
+        } else {
+            userNode = new Node(port, ip, bootstrapPort, bootstrapIp);
+        }
         KadNode knode = new KadNode(userNode);
 
-        clientManager = new clientManager();
+        try {
+            clientManager = new clientManager(userNode);
+            knode.setClientManager(clientManager);
+            //clientManager.registerNode(userNode);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-        List<Node> nodes = clientManager.getNodes(userNode);
+        /*List<Node> nodes = clientManager.getNodes(userNode);
         System.out.println("Discovered nodes: ");
         for (Node node : nodes) {
             System.out.println("Node IP: " + node.getNodeIP() + ", Port: " + node.getNodePublicPort());
@@ -228,6 +268,8 @@ public class Menu {
             KadNode targetKnode = new KadNode(n);
             clientManager.doPing(knode, targetKnode);
         }
+
+         */
 
         while (true) {
             System.out.println("Opção:");

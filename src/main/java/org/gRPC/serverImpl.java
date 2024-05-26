@@ -45,6 +45,8 @@ public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
 
 
     public void getNodes(NodeInfo request, StreamObserver<NodeList1> responseObserver) {
+        logger.info("Received getNodes request from: " + request.getNodeIP());
+
         NodeList1.Builder nodeListBuilder = NodeList1.newBuilder()
                 .addAllNodes(new ArrayList<>(nodes.values()));
 
@@ -56,6 +58,8 @@ public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
     public void ping(pingP request, StreamObserver<pingP> responseObserver){
 
         logger.info("Got the ping request from client node = " + request.getNodeId());
+        pingP response = pingP.newBuilder().setMessage("Pong").build();
+
         //enviar resposta para a requisiçao grpc
         responseObserver.onNext(request);
         responseObserver.onCompleted();
@@ -97,7 +101,7 @@ public class serverImpl extends ledgerServiceGrpc.ledgerServiceImplBase{
         for(Node closeNode : closestNodes) {
             final FNodes clnode = FNodes.newBuilder()
                     .setNodeId(ByteString.copyFrom(closeNode.getNodeId()))
-                    .setNodeIp(Integer.toString(closeNode.getNodeIP()))
+                    .setNodeIp(String.valueOf(closeNode.getNodeIP()))
                     .setPort(closeNode.getNodePublicPort())
                     .setTimestamp(closeNode.getNodeTimestamp())
                     .build();

@@ -1,6 +1,7 @@
 package org.Kademlia;
 
 import java.math.BigInteger;
+import java.net.InetAddress;
 import java.security.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -22,7 +23,7 @@ import org.Kademlia.RoutingTable.RoutingTable;
 public class Node {
         private final byte[] nodeId; //KEY
         private final int nodePublicPort;
-        private final int nodeIP;
+        private final InetAddress nodeIP;
 
         private long nodeTimestamp;
 
@@ -31,7 +32,9 @@ public class Node {
         private int nonce;
         private Wallet wallet;
 
-    public Node(int nodePublicPort, int nodeIP) {
+        private static Node bootstrapNode;
+
+    public Node(int nodePublicPort, InetAddress nodeIP) {
         this.nodePublicPort = nodePublicPort;
         this.nodeIP = nodeIP;
         generateKeys();
@@ -42,10 +45,25 @@ public class Node {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-
+        bootstrapNode = this;
+        System.out.println("Bootstrap Node: " + nodeIP.toString() + ":" + nodePublicPort);
     }
 
-    public Node(int nodePublicPort, int nodeIP, Wallet wallet) {
+    public Node(int nodePublicPort, InetAddress nodeIP, int bootstrapPort, InetAddress bootstrapIP ){
+        this.nodePublicPort = nodePublicPort;
+        this.nodeIP = nodeIP;
+        generateKeys();
+        generateTimestamp();
+        this.nodeId = generateId(this.pubKey);
+        try {
+            nonce = mineChallenge(nodeId);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        bootstrapNode = new Node(bootstrapPort, bootstrapIP);
+    }
+
+    public Node(int nodePublicPort, InetAddress nodeIP, Wallet wallet) {
         this.nodePublicPort = nodePublicPort;
         this.nodeIP = nodeIP;
         generateKeys();
@@ -162,7 +180,7 @@ public class Node {
         this.nonce = nonce;
     }
 
-    public int getNodeIP() {
+    public InetAddress getNodeIP() {
         return nodeIP;
     }
 
