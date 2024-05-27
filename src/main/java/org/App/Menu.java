@@ -100,7 +100,7 @@ public class Menu {
     }
 
     public static void help() {
-        System.out.println("auction > create auction\nclient > bid in auctions\nserver > create server");
+        System.out.println("auction > create auction\nclient > bid in auctions");
     }
 
 
@@ -115,10 +115,14 @@ public class Menu {
         } else {
             userNode = new Node(port, name, bootstrapPort, bootstrapIp);
         }
-
+        try {
+            clientManager = new clientManager(userNode);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         KadNode kadNode = new KadNode(userNode);
 
-        List<Node> nodes = clientManager.getNodes(userNode);
+       /* List<Node> nodes = clientManager.getNodes(userNode);
         System.out.println("Discovered nodes: ");
         for (Node node : nodes) {
             System.out.println("Node IP: " + node.getNodeIP() + ", Port: " + node.getNodePublicPort());
@@ -128,6 +132,8 @@ public class Menu {
             KadNode targetKnode = new KadNode(n);
             clientManager.doPing(kadNode, targetKnode);
         }
+
+        */
 
         while(true) {
             System.out.println("Opções");
@@ -270,6 +276,8 @@ public class Menu {
         }
 
          */
+
+
 
         while (true) {
             System.out.println("Opção:");

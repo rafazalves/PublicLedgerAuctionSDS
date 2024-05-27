@@ -48,7 +48,6 @@ public class clientManager {
 
         this.stub = newStub(n);
 
-        int i = 0;
     }
 
     public clientManager() {
@@ -202,7 +201,7 @@ public class clientManager {
 
     //store value tem que ter a timestamp atualizada
     public void doStore(KadNode n, KadNode n1, StorageValue storeValue){
-        logger.info("Will try to Store with nodeId: " + Arrays.toString(n.getNode().getNodeId()));
+        logger.info("Will try to Store with nodeId: " + n.getNode().printNodeId_Hash());
 
         try {
             stub = this.newStub(n.getNode());
